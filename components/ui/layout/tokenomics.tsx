@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Coins, Users, Zap, Trophy, ChevronRight, ExternalLink } from 'lucide-react'
+import Image from 'next/image'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title)
 
@@ -80,10 +81,10 @@ const tokenDetails = [
 ]
 
 const dexList = [
-  { name: 'Raydium', url: 'https://raydium.io/swap/?inputCurrency=sol&outputCurrency=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&fixed=in' },
-  { name: 'Orca', url: 'https://www.orca.so/swap?inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' },
-  { name: 'Jupiter', url: 'https://jup.ag/swap/USDC-MILTON' },
-  { name: 'OpenBook', url: 'https://openserum.io/market/MILTON-USDC' },
+  { name: 'Raydium', url: 'https://raydium.io/swap/?inputCurrency=sol&outputCurrency=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&fixed=in', icon: '/images/icons/raydium.svg' },
+  { name: 'Orca', url: 'https://www.orca.so/swap?inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', icon: '/images/icons/orca.svg' },
+  { name: 'Jupiter', url: 'https://jup.ag/swap/USDC-MILTON', icon: '/images/icons/jupiter.svg' },
+  { name: 'Meteora', url: 'https://meteora.io/market/MILTON-USDC', icon: '/images/icons/meteora.svg' },
 ]
 
 export default function Tokenomics() {
@@ -98,7 +99,7 @@ export default function Tokenomics() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Token Economics</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Tokenomics</h2>
           <p className="text-xl text-gray-600">Understand the meme-powered economics behind MILTON</p>
         </motion.div>
 
@@ -297,7 +298,16 @@ export default function Tokenomics() {
                         <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
                           <CardHeader>
                             <CardTitle className="text-lg flex items-center justify-between">
-                              {dex.name}
+                              <div className="flex items-center">
+                                <Image
+                                  src={dex.icon}
+                                  alt={`${dex.name} icon`}
+                                  width={24}
+                                  height={24}
+                                  className="mr-2"
+                                />
+                                {dex.name}
+                              </div>
                               <a
                                 href={dex.url}
                                 target="_blank"
@@ -315,6 +325,7 @@ export default function Tokenomics() {
                               className="w-full"
                             >
                               <a
+                                
                                 href={dex.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -335,7 +346,7 @@ export default function Tokenomics() {
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity:  1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-12 text-center"
         >

@@ -1,16 +1,17 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import { client, db } from './drizzle';
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import { db } from './drizzle'
 
-dotenv.config();
+async function runMigrations() {
+  console.log('Running migrations...')
 
-async function main() {
-  await migrate(db, {
-    migrationsFolder: path.join(process.cwd(), '/lib/db/migrations'),
-  });
-  console.log(`Migrations complete`);
-  await client.end();
+  await migrate(db, { migrationsFolder: './drizzle' })
+
+  console.log('Migrations complete!')
+
+  process.exit(0)
 }
 
-main();
+runMigrations().catch((error) => {
+  console.error('Migration failed:', error)
+  process.exit(1)
+})

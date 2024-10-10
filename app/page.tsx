@@ -19,11 +19,13 @@ const ScrollProgressBar = () => {
     const updateScrollProgress = () => {
       const scrollPx = document.documentElement.scrollTop
       const winHeightPx = document.documentElement.scrollHeight - document.documentElement.clientHeight
-      const scrolled = `${scrollPx / winHeightPx * 100}%`
-      setScrollProgress(scrolled)
+      const progress = (scrollPx / winHeightPx) * 100
+      setScrollProgress(progress)
     }
 
     window.addEventListener('scroll', updateScrollProgress)
+    updateScrollProgress() // Initial call to set progress on mount
+
     return () => window.removeEventListener('scroll', updateScrollProgress)
   }, [])
 
@@ -31,7 +33,7 @@ const ScrollProgressBar = () => {
     <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
       <div
         className="h-full bg-primary transition-all duration-300 ease-out"
-        style={{ width: scrollProgress }}
+        style={{ width: `${scrollProgress}%` }}
       />
     </div>
   )

@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, Zap, Users, TrendingUp, X, Play, Rocket, Flame } from 'lucide-react'
+import { ArrowRight, Zap, Users, TrendingUp, Rocket, Flame } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 
 export function Hero() {
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+  const router = useRouter()
   const [isHovering, setIsHovering] = useState(false)
   const [badgeText, setBadgeText] = useState('')
   const [badgeIcon, setBadgeIcon] = useState<React.ReactNode>(null)
@@ -53,10 +54,14 @@ export function Hero() {
     return () => clearInterval(timer)
   }, [])
 
+  const handleCreateBlink = () => {
+    router.push('/generate-blinks')
+  }
+
   return (
     <section className="relative py-20 text-white overflow-hidden">
       <Image
-        src="/images/tornado-on-transparent-background-free-png.webp"
+        src="https://ucarecdn.com/4de9a21e-eea8-4546-bab1-c241ebe242cc/hurricane.jpeg"
         alt="Background tornado"
         fill
         style={{ objectFit: 'cover' }}
@@ -87,7 +92,7 @@ export function Hero() {
               The Storm of Solana: Brace Yourself for the Fastest, Funniest, and Most Chaotic Token on the Blockchain!
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="#buy-milton" passHref legacyBehavior>
+              <Link href="/checkout" passHref legacyBehavior>
                 <Button asChild className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-full inline-flex items-center justify-center transition-colors duration-300">
                   <a>
                     Buy $MILTON
@@ -98,10 +103,10 @@ export function Hero() {
               <Button 
                 variant="outline" 
                 className="w-full sm:w-auto bg-transparent hover:bg-white/10 text-white font-semibold py-3 px-6 rounded-full inline-flex items-center justify-center border border-white transition-colors duration-300"
-                onClick={() => setIsVideoPlaying(true)}
+                onClick={handleCreateBlink}
               >
-                <Play className="mr-2 h-5 w-5" />
-                Watch Video
+                <Zap className="mr-2 h-5 w-5" />
+                Create Blink
               </Button>
             </div>
           </div>
@@ -143,34 +148,6 @@ export function Hero() {
           </motion.div>
         </motion.div>
       </div>
-      <AnimatePresence>
-        {isVideoPlaying && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/75 flex items-center justify-center z-50"
-          >
-            <div className="relative w-full max-w-4xl aspect-video">
-              <iframe
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                className="absolute top-0 left-0 w-full h-full"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 text-white hover:text-gray-300"
-                onClick={() => setIsVideoPlaying(false)}
-              >
-                <X className="h-6 w-6" />
-                <span className="sr-only">Close video</span>
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   )
 }

@@ -1,0 +1,341 @@
+openapi: 3.0.3
+info:
+  title: Milton Token Management API
+  version: 1.0.0
+  description: >
+    This API allows users to interact with Milton tokens on the Solana blockchain 
+    for token transactions, transfers, swaps, and referral management.
+  contact:
+    name: MILTON API Support
+    email: support@miltonprotocol.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.milton-token/v1
+    description: Production Server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    TokenInfo:
+      type: object
+      properties:
+        milton:
+          type: object
+          properties:
+            supply:
+              type: integer
+              description: Total supply of Milton tokens
+            decimals:
+              type: integer
+              description: Number of decimal places for Milton token
+            price:
+              type: number
+              description: Current price of Milton token in USD
+            treasuryBalance:
+              type: number
+              description: Milton tokens held in treasury
+        usdc:
+          type: object
+          properties:
+            supply:
+              type: integer
+              description: Total supply of USDC
+            decimals:
+              type: integer
+              description: Number of decimal places for USDC
+            price:
+              type: number
+              description: Current price of USDC in USD
+            treasuryBalance:
+              type: number
+              description: USDC tokens held in treasury
+
+    TransactionRequest:
+      type: object
+      required:
+        - buyerPublicKey
+        - miltonAmount
+        - paymentCurrency
+      properties:
+        buyerPublicKey:
+          type: string
+          description: Solana public key of the buyer
+        miltonAmount:
+          type: number
+          description: Amount of Milton tokens to purchase
+        paymentCurrency:
+          type: string
+          enum: [SOL, USDC]
+          description: Currency used for payment (SOL or USDC)
+        paymentAmount:
+          type: number
+          description: Amount of currency paid
+        slippageTolerance:
+          type: number
+          description: Slippage tolerance for token swap (%)
+
+    TransactionResponse:
+      type: object
+      properties:
+        transaction:
+          type: string
+          description: Encoded Solana transaction
+        transactionId:
+          type: string
+          description: Unique ID for the transaction
+        feeEstimate:
+          type: number
+          description: Estimated fee for the transaction
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration time for the transaction
+
+    ReferralRequest:
+      type: object
+      required:
+        - referredBy
+      properties:
+        referredBy:
+          type: string
+          description: Public key of the user making the referral
+        referredUser:
+          type: string
+          description: Public key of the referred user
+
+    ReferralResponse:
+      type: object
+      properties:
+        referralId:
+          type: string
+          description: Unique ID of the referral
+        referredBy:
+          type: string
+          description: Public key of the user who referred
+        referredUser:
+          type: string
+          description: Public key of the referred user
+        status:
+          type: string
+          description: Status of the referral
+          enum: [pending, completed]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: object
+          additionalProperties: true
+
+paths:
+  /milton/tokens:
+    get:
+      summary: Fetch Milton and USDC token information
+      operationId: getMiltonTokenInfo
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenInfo'
+              examples:
+                exampleTokenInfo:
+                  value:
+                    milton:
+                      supply: 1000000
+                      decimals: 6
+                      price: 1.5
+                      treasuryBalance: 50000
+                    usdc:
+                      supply: 10000000
+                      decimals: 6
+                      price: 1.0
+                      treasuryBalance: 100000
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /milton/transactions:
+    post:
+      summary: Create Milton token purchase transaction
+      operationId: createMiltonTransaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+            example:
+              buyerPublicKey: "FxyV...45Hg"
+              miltonAmount: 10
+              paymentCurrency: "SOL"
+              paymentAmount: 1.2
+              slippageTolerance: 0.5
+      responses:
+        '200':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              example:
+                transaction: "abcdef123456789"
+                transactionId: "tx123456"
+                feeEstimate: 0.01
+                expiresAt: "2024-10-10T12:00:00Z"
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /milton/swaps:
+    post:
+      summary: Swap between SOL, USDC, and Milton tokens
+      operationId: createMiltonSwap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: Swap successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /milton/referrals:
+    post:
+      summary: Create a new referral
+      operationId: createReferral
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferralRequest'
+      responses:
+        '200':
+          description: Referral created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralResponse'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Retrieve user’s referrals
+      operationId: getUserReferrals
+      parameters:
+        - name: referredBy
+          in: query
+          description: Public key of the user who referred
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Successful retrieval of referrals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  referrals:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReferralResponse'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalRecords:
+                        type: integer
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Complete a referral (admin only)
+      operationId: completeReferral
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferralRequest'
+      responses:
+        '200':
+          description: Referral completed successfully
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []

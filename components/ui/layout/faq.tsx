@@ -31,7 +31,7 @@ const faqs = [
   }
 ]
 
-function AccordionItem({ question, answer, isOpen, onClick }) {
+function AccordionItem({ question, answer, isOpen, onClick }: { question: string; answer: string; isOpen: boolean; onClick: () => void }) {
   return (
     <div className="border-b border-gray-200 last:border-b-0">
       <button
@@ -59,13 +59,17 @@ function AccordionItem({ question, answer, isOpen, onClick }) {
 }
 
 export function FAQ() {
-  const [openIndex, setOpenIndex] = useState(null)
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
+
+  const handleToggle = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index)
+  }
 
   return (
-    <section id="faq" className="py-24">
+    <section id="faq" className="py-24 bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.h2 
-          className="text-5xl font-bold text-center text-gray-900 mb-16"
+          className="text-4xl font-bold text-center text-gray-900 mb-16"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -89,7 +93,7 @@ export function FAQ() {
                 question={faq.question}
                 answer={faq.answer}
                 isOpen={openIndex === index}
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                onClick={() => handleToggle(index)}
               />
             </motion.div>
           ))}

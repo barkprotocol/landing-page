@@ -1,84 +1,64 @@
-import { stripe } from '../payments/stripe';
-import { db } from './drizzle';
-import { users, teams, teamMembers } from './schema';
-import { hashPassword } from '@/lib/auth/session';
-
-async function createStripeProducts() {
-  console.log('Creating Stripe products and prices...');
-
-  const baseProduct = await stripe.products.create({
-    name: 'Base',
-    description: 'Base subscription plan',
-  });
-
-  await stripe.prices.create({
-    product: baseProduct.id,
-    unit_amount: 800, // $8 in cents
-    currency: 'usd',
-    recurring: {
-      interval: 'month',
-      trial_period_days: 7,
-    },
-  });
-
-  const plusProduct = await stripe.products.create({
-    name: 'Plus',
-    description: 'Plus subscription plan',
-  });
-
-  await stripe.prices.create({
-    product: plusProduct.id,
-    unit_amount: 1200, // $12 in cents
-    currency: 'usd',
-    recurring: {
-      interval: 'month',
-      trial_period_days: 7,
-    },
-  });
-
-  console.log('Stripe products and prices created successfully.');
-}
+import { db } from './drizzle'
+import { users, transactions, wallets, settings } from './schema'
+import { faker } from '@faker-js/faker'
 
 async function seed() {
-  const email = 'test@test.com';
-  const password = 'admin123';
-  const passwordHash = await hashPassword(password);
+  console.log('Seeding database...')
 
-  const [user] = await db
-    .insert(users)
-    .values([
-      {
-        email: email,
-        passwordHash: passwordHash,
-        role: "owner",
-      },
-    ])
-    .returning();
-
-  console.log('Initial user created.');
-
-  const [team] = await db
-    .insert(teams)
-    .values({
-      name: 'Test Team',
+  // Create users
+  const userIds = await Promise.all(
+    Array.from({ length: 10 }).map(async () => {
+      const [user] = await db.insert(users).values({
+        email: faker.internet.email(),
+        name: faker.person.fullName(),
+      }).returning({ id: users.id })
+      return user.id
     })
-    .returning();
+  )
 
-  await db.insert(teamMembers).values({
-    teamId: team.id,
-    userId: user.id,
-    role: 'owner',
-  });
+  // Create wallets for users
+  await Promise.all(
+    userIds.map(async (userId) => {
+      await db.insert(wallets).values({
+        userId,
+        address: faker.finance.solanaAddress(),
+        balance: faker.number.int({ min: 0, max: 1000000 }),
+      })
+    })
+  )
 
-  await createStripeProducts();
+  // Create transactions for users
+  await Promise.all(
+    userIds.flatMap((userId) =>
+      Array.from({ length: 5 }).map(async () => {
+        await db.insert(transactions).values({
+          userId,
+          amount: faker.number.int({ min: 1, max: 1000 }),
+          type: faker.helpers.arrayElement(['deposit', 'withdrawal', 'transfer']),
+          status: faker.helpers.arrayElement(['pending', 'completed', 'failed']),
+        })
+      })
+    )
+  )
+
+  // Create settings for users
+  await Promise.all(
+    userIds.map(async (userId) => {
+      await db.insert(settings).values({
+        userId,
+        preferences: JSON.stringify({
+          theme: faker.helpers.arrayElement(['light', 'dark']),
+          language: faker.helpers.arrayElement(['en', 'es', 'fr']),
+        }),
+        notifications: faker.datatype.boolean(),
+      })
+    })
+  )
+
+  console.log('Seeding complete!')
 }
 
-seed()
-  .catch((error) => {
-    console.error('Seed process failed:', error);
-    process.exit(1);
-  })
-  .finally(() => {
-    console.log('Seed process finished. Exiting...');
-    process.exit(0);
-  });
+seed().catch((error) => {
+  console.error('Seeding failed:', error)
+  process.exit(1)
+})
