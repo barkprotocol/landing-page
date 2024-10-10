@@ -92,7 +92,7 @@ export function Hero() {
               The Storm of Solana: Brace Yourself for the Fastest, Funniest, and Most Chaotic Token on the Blockchain!
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/checkout" passHref legacyBehavior>
+              <Link href="/pages/buy" passHref legacyBehavior>
                 <Button asChild className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-full inline-flex items-center justify-center transition-colors duration-300">
                   <a>
                     Buy $MILTON

@@ -101,6 +101,12 @@ importers:
       '@solana/actions':
         specifier: ^1.6.5
         version: 1.6.5(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@solana/pay':
+        specifier: ^0.2.5
+        version: 0.2.5(bufferutil@4.0.8)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.3)(utf-8-validate@5.0.10)
+      '@solana/qr-code-styling':
+        specifier: ^1.6.0
+        version: 1.6.0
       '@solana/spl-token':
         specifier: ^0.4.8
         version: 0.4.8(@solana/web3.js@1.95.3(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.3)(utf-8-validate@5.0.10)
@@ -143,6 +149,9 @@ importers:
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
+      bignumber.js:
+        specifier: ^9.1.2
+        version: 9.1.2
       bs58:
         specifier: ^6.0.0
         version: 6.0.0
@@ -158,6 +167,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      cross-fetch:
+        specifier: ^4.0.0
+        version: 4.0.0
       crypto:
         specifier: ^1.0.1
         version: 1.0.1
@@ -173,6 +185,9 @@ importers:
       jose:
         specifier: ^5.9.3
         version: 5.9.3
+      js-base64:
+        specifier: ^3.7.7
+        version: 3.7.7
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -233,6 +248,9 @@ importers:
       tailwindcss-react-aria-components:
         specifier: 1.1.5
         version: 1.1.5(tailwindcss@3.4.13)
+      tweetnacl:
+        specifier: ^1.0.3
+        version: 1.0.3
       typescript:
         specifier: ^5.6.3
         version: 5.6.3
@@ -2654,6 +2672,10 @@ packages:
     peerDependencies:
       typescript: '>=5'
 
+  '@solana/pay@0.2.5':
+    resolution: {integrity: sha512-Olz1Tdq9hOD/KW8A6hyYR12gn2JfnP1lLTlpMtXniSinjcqG+zttCYvJFrf6itLIUSsmqokF8NGzrdZqK/GnSA==}
+    engines: {node: '>=16'}
+
   '@solana/qr-code-styling@1.6.0':
     resolution: {integrity: sha512-KyBmyFKPxQPhUkP0jjnxV2ZeF1R1guTD8Hrd0YvHvMnhtrNEoEEdv4Jpp4W0GN4qCGG2KYOM5d3TgoLD+CNf9Q==}
 
@@ -2668,6 +2690,12 @@ packages:
     engines: {node: '>=16'}
     peerDependencies:
       '@solana/web3.js': ^1.95.3
+
+  '@solana/spl-token@0.3.11':
+    resolution: {integrity: sha512-bvohO3rIMSVL24Pb+I4EYTJ6cL82eFpInEXD/I8K8upOGjpqHsKUoAempR/RnUlI1qSFNyFlWJfu6MNUgfbCQQ==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      '@solana/web3.js': ^1.88.0
 
   '@solana/spl-token@0.4.8':
     resolution: {integrity: sha512-RO0JD9vPRi4LsAbMUdNbDJ5/cv2z11MGhtAvFeRzT4+hAGE/FUzRi0tkkWtuCfSIU3twC6CtmAihRp/+XXjWsA==}
@@ -9722,6 +9750,22 @@ snapshots:
     transitivePeerDependencies:
       - fastestsmallesttextencoderdecoder
 
+  '@solana/pay@0.2.5(bufferutil@4.0.8)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.3)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@solana/qr-code-styling': 1.6.0
+      '@solana/spl-token': 0.3.11(@solana/web3.js@1.95.3(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.3)(utf-8-validate@5.0.10)
+      '@solana/web3.js': 1.95.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      bignumber.js: 9.1.2
+      cross-fetch: 3.1.8
+      js-base64: 3.7.7
+      tweetnacl: 1.0.3
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - fastestsmallesttextencoderdecoder
+      - typescript
+      - utf-8-validate
+
   '@solana/qr-code-styling@1.6.0':
     dependencies:
       qrcode-generator: 1.4.4
@@ -9743,6 +9787,20 @@ snapshots:
     transitivePeerDependencies:
       - fastestsmallesttextencoderdecoder
       - typescript
+
+  '@solana/spl-token@0.3.11(@solana/web3.js@1.95.3(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.3)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@solana/buffer-layout': 4.0.1
+      '@solana/buffer-layout-utils': 0.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@solana/spl-token-metadata': 0.1.5(@solana/web3.js@1.95.3(bufferutil@4.0.8)(utf-8-validate@5.0.10))(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.3)
+      '@solana/web3.js': 1.95.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      buffer: 6.0.3
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - fastestsmallesttextencoderdecoder
+      - typescript
+      - utf-8-validate
 
   '@solana/spl-token@0.4.8(@solana/web3.js@1.95.3(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.3)(utf-8-validate@5.0.10)':
     dependencies:
