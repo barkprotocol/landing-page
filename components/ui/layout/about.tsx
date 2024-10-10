@@ -27,7 +27,7 @@ export function About() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl mb-4">
-            About Milton Token
+            About Milton
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Revolutionizing meme culture on the Solana blockchain
