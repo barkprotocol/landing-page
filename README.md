@@ -1,8 +1,6 @@
 # MILTON WEB UI / WEB3 DAPP
 
-
-
-# Milton Token Management API Documentation
+## Milton Token Management API Documentation
 
 This OpenAPI specification defines an API for interacting with Milton tokens on the Solana blockchain. It includes the following features:
 

@@ -1,17 +1,18 @@
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
-import { db } from './drizzle'
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { db } from './drizzle';
 
 async function runMigrations() {
-  console.log('Running migrations...')
+  console.log('Starting migrations...');
 
-  await migrate(db, { migrationsFolder: './drizzle' })
-
-  console.log('Migrations complete!')
-
-  process.exit(0)
+  try {
+    await migrate(db, { migrationsFolder: './drizzle' });
+    console.log('Migrations completed successfully!');
+  } catch (error) {
+    console.error('Migration failed:', error);
+    process.exit(1); // Exit with failure status
+  } finally {
+    process.exit(0); // Ensure the process exits after migration
+  }
 }
 
-runMigrations().catch((error) => {
-  console.error('Migration failed:', error)
-  process.exit(1)
-})
+runMigrations();
