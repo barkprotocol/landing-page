@@ -6,8 +6,8 @@ import { ChevronDown } from 'lucide-react'
 
 const faqs = [
   {
-    question: "What is Milton Token?",
-    answer: "Milton Token is a meme-powered cryptocurrency built on the Solana blockchain, combining lightning-fast transactions with hilarious meme culture."
+    question: "What is Milton Token (MILTON)?",
+    answer: "MILTON is a meme-powered token built on the Solana blockchain, combining lightning-fast transactions with hilarious meme culture."
   },
   {
     question: "How do I earn MILTON tokens?",

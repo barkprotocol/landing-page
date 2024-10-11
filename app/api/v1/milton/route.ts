@@ -9,7 +9,7 @@ import { createHmac } from 'crypto'
 import { Logger } from '@/lib/logger'
 import { CustomError, ErrorType } from '@/lib/custom-error'
 import prisma from '@/lib/prisma'
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, MEMO_PROGRAM_ID, MILTON_TOKEN_ADDRESS, USDC_TOKEN_ADDRESS } from '@/lib/solana/programs'
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM, ASSOCIATED_TOKEN_PROGRAM_ID, MEMO_PROGRAM_ID, MILTON_TOKEN_ADDRESS, USDC_TOKEN_ADDRESS } from '@/lib/solana/programs'
 import { getTokenAccountBalance } from '@/lib/solana/milton-token-utils'
 import axios from 'axios'
 
@@ -344,6 +344,8 @@ export async function PUT(request: NextRequest) {
         body: JSON.stringify({ transactionId, txId, status: 'completed' })
       }).catch(error => logger.error('Webhook notification failed:', error))
     }
+
+    
 
     return NextResponse.json({ txId, status: 'confirmed' })
   } catch (error) {

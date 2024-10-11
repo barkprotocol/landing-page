@@ -1,5 +1,14 @@
 import { Connection, PublicKey, Transaction, SystemProgram, sendAndConfirmTransaction, Keypair } from '@solana/web3.js'
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getAccount, getMint, createTransferCheckedInstruction } from '@solana/spl-token'
+import { 
+  TOKEN_PROGRAM_ID, 
+  ASSOCIATED_TOKEN_PROGRAM_ID, 
+  getAssociatedTokenAddress, 
+  createAssociatedTokenAccountInstruction, 
+  getAccount, 
+  getMint, 
+  createTransferCheckedInstruction,
+  createBurnCheckedInstruction
+} from '@solana/spl-token'
 import { CustomError, ErrorType } from '@/lib/custom-error'
 import { Logger } from '@/lib/logger'
 
@@ -108,7 +117,7 @@ export async function transferMiltonTokens(
     return signature
   } catch (error) {
     logger.error('Error transferring MILTON tokens:', error)
-    throw new CustomError(ErrorType.TokenTransferError, 'Failed to transfer MILTON tokens')
+    throw new CustomError(ErrorType.TransactionFailed, 'Failed to transfer MILTON tokens')
   }
 }
 
@@ -143,7 +152,7 @@ export async function getMiltonTotalSupply(connection: Connection): Promise<numb
     return Number(mintInfo.supply) / Math.pow(10, MILTON_DECIMALS)
   } catch (error) {
     logger.error('Error getting MILTON total supply:', error)
-    throw new CustomError(ErrorType.TokenInfoError, 'Failed to get MILTON total supply')
+    throw new CustomError(ErrorType.BlockchainError, 'Failed to get MILTON total supply')
   }
 }
 
@@ -167,4 +176,105 @@ export function parseMiltonAmount(input: string): number {
     throw new CustomError(ErrorType.InvalidInput, 'Invalid MILTON token amount')
   }
   return parsed
+}
+
+/**
+ * Get the current price of MILTON tokens in USD
+ * @param connection Solana connection
+ * @returns The current price of MILTON tokens in USD
+ */
+export async function getMiltonPrice(connection: Connection): Promise<number> {
+  try {
+    // This is a placeholder implementation. In a real-world scenario, you would
+    // fetch the price from an oracle or a price feed.
+    return 0.1; // Assuming 1 MILTON = $0.1 USD
+  } catch (error) {
+    logger.error('Error fetching MILTON price:', error)
+    throw new CustomError(ErrorType.ExternalApiError, 'Failed to fetch MILTON price')
+  }
+}
+
+/**
+ * Calculate the USD value of a given amount of MILTON tokens
+ * @param connection Solana connection
+ * @param miltonAmount The amount of MILTON tokens
+ * @returns The USD value of the given MILTON tokens
+ */
+export async function calculateMiltonUsdValue(connection: Connection, miltonAmount: number): Promise<number> {
+  const price = await getMiltonPrice(connection);
+  return miltonAmount * price;
+}
+
+/**
+ * Get the transaction history for a MILTON token account
+ * @param connection Solana connection
+ * @param ownerAddress The owner's wallet address
+ * @param limit The maximum number of transactions to fetch
+ * @returns An array of transaction signatures
+ */
+export async function getMiltonTransactionHistory(
+  connection: Connection,
+  ownerAddress: PublicKey,
+  limit: number = 10
+): Promise<string[]> {
+  try {
+    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, ownerAddress)
+    const transactions = await connection.getSignaturesForAddress(associatedTokenAddress, { limit })
+    return transactions.map(tx => tx.signature)
+  } catch (error) {
+    logger.error('Error fetching MILTON transaction history:', error)
+    throw new CustomError(ErrorType.BlockchainError, 'Failed to fetch MILTON transaction history')
+  }
+}
+
+/**
+ * Burn MILTON tokens
+ * @param connection Solana connection
+ * @param payer The account that will pay for the transaction
+ * @param ownerAddress The owner's wallet address
+ * @param amount The amount of MILTON tokens to burn
+ * @returns The transaction signature
+ */
+export async function burnMiltonTokens(
+  connection: Connection,
+  payer: Keypair,
+  ownerAddress: PublicKey,
+  amount: number
+): Promise<string> {
+  try {
+    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, ownerAddress)
+    const tokenAmount = BigInt(Math.round(amount * Math.pow(10, MILTON_DECIMALS)))
+
+    const transaction = new Transaction().add(
+      createBurnCheckedInstruction(
+        associatedTokenAddress,
+        MILTON_TOKEN_ADDRESS,
+        ownerAddress,
+        tokenAmount,
+        MILTON_DECIMALS
+      )
+    )
+
+    const signature = await sendAndConfirmTransaction(connection, transaction, [payer])
+    return signature
+  } catch (error) {
+    logger.error('Error burning MILTON tokens:', error)
+    throw new CustomError(ErrorType.TransactionFailed, 'Failed to burn MILTON tokens')
+  }
+}
+
+export default {
+  MILTON_DECIMALS,
+  MILTON_TOKEN_ADDRESS,
+  getMiltonBalance,
+  createMiltonAccountIfNotExist,
+  transferMiltonTokens,
+  doesMiltonAccountExist,
+  getMiltonTotalSupply,
+  formatMiltonAmount,
+  parseMiltonAmount,
+  getMiltonPrice,
+  calculateMiltonUsdValue,
+  getMiltonTransactionHistory,
+  burnMiltonTokens,
 }

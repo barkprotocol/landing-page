@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 import { createHmac } from 'crypto'
 import prisma from '@/lib/prisma'
 import { createSwap, getUserById, updateWalletBalance } from '@/db/queries'
-import { transferToken } from '@/lib/solana-utils'
+import { transferToken } from '@/lib/solana/solana-utils'
 import { PublicKey } from '@solana/web3.js'
 import { MILTON_TOKEN_ADDRESS, USDC_TOKEN_ADDRESS } from '@/lib/solana/programs'
 
@@ -19,11 +19,16 @@ const swapSchema = z.object({
   amount: z.number().positive(),
 })
 
+type JwtPayload = {
+  userId: number
+}
+
 async function verifyJWT(token: string): Promise<boolean> {
   try {
     jwt.verify(token, process.env.JWT_SECRET!)
     return true
   } catch (error) {
+    logger.error('JWT verification failed:', error)
     return false
   }
 }
@@ -44,27 +49,37 @@ async function verifySignature(request: NextRequest): Promise<boolean> {
   return signature === expectedSignature
 }
 
+async function getSwapRate(fromCurrency: string, toCurrency: string): Promise<number> {
+  // TODO: Implement actual swap rate fetching logic
+  // This could involve calling an external API or using an internal price oracle
+  return 1
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
     const { success } = await rateLimit(request)
     if (!success) {
       throw new CustomError(ErrorType.RateLimitExceeded, 'Rate limit exceeded')
     }
 
+    // JWT Authentication
     const authToken = request.headers.get('authorization')?.split(' ')[1]
     if (!authToken || !(await verifyJWT(authToken))) {
       throw new CustomError(ErrorType.Unauthorized, 'Unauthorized')
     }
 
+    // Signature verification
     if (!(await verifySignature(request))) {
       throw new CustomError(ErrorType.InvalidSignature, 'Invalid signature')
     }
 
+    // Parse and validate request body
     const body = await request.json()
     const { fromCurrency, toCurrency, amount } = swapSchema.parse(body)
 
     // Get user from JWT
-    const decodedToken = jwt.decode(authToken) as { userId: number }
+    const decodedToken = jwt.decode(authToken) as JwtPayload
     const user = await getUserById(decodedToken.userId)
     if (!user) {
       throw new CustomError(ErrorType.UserNotFound, 'User not found')
@@ -76,13 +91,13 @@ export async function POST(request: NextRequest) {
       throw new CustomError(ErrorType.WalletNotFound, 'Wallet not found')
     }
 
-    const fromBalance = wallet[`${fromCurrency.toLowerCase()}Balance`]
+    const fromBalance = wallet[`${fromCurrency.toLowerCase()}Balance` as keyof typeof wallet] as number
     if (fromBalance < amount) {
       throw new CustomError(ErrorType.InsufficientFunds, 'Insufficient funds')
     }
 
-    // Calculate swap rate and amount (simplified for this example)
-    const rate = 1 // In a real-world scenario, you would fetch the current exchange rate
+    // Calculate swap rate and amount
+    const rate = await getSwapRate(fromCurrency, toCurrency)
     const toAmount = amount * rate
 
     // Perform the swap
@@ -123,8 +138,8 @@ export async function POST(request: NextRequest) {
     )
 
     // Update wallet balances
-    await updateWalletBalance(user.id, fromCurrency, (Number(fromBalance) - amount).toString())
-    await updateWalletBalance(user.id, toCurrency, (Number(wallet[`${toCurrency.toLowerCase()}Balance`]) + toAmount).toString())
+    await updateWalletBalance(user.id, fromCurrency, (fromBalance - amount).toString())
+    await updateWalletBalance(user.id, toCurrency, (Number(wallet[`${toCurrency.toLowerCase()}Balance` as keyof typeof wallet]) + toAmount).toString())
 
     return NextResponse.json({ success: true, swap })
   } catch (error) {

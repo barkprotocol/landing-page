@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const navItems = [
   { href: '#features', label: 'Features' },
+  { href: './pages/services', label: 'Services' },
   { href: '#tokenomics', label: 'Tokenomics' },
   { href: '#faq', label: 'FAQ' },
   { href: '#community', label: 'Community' },

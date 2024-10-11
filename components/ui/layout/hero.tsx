@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, Zap, Users, TrendingUp, Rocket, Flame } from 'lucide-react'
+import { ArrowRight, Zap, Users, TrendingUp, Rocket, Flame, Heart, Globe } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -24,12 +24,13 @@ export function Hero() {
   const cards = [
     { title: "Fast Transactions", icon: Zap, description: "Experience lightning-fast transactions on the Solana blockchain." },
     { title: "Community Driven", icon: Users, description: "Join a vibrant community of meme enthusiasts and Solana lovers." },
-    { title: "Solana Blinks", icon: TrendingUp, description: "Explore cutting-edge Miltonboard features powered by Milton." }
+    { title: "Disaster Relief", icon: Heart, description: "Support global disaster relief efforts through MILTON transactions." },
+    { title: "Real-World Impact", icon: Globe, description: "Use MILTON for charitable donations and social good initiatives." }
   ]
 
   useEffect(() => {
     const updateBadge = () => {
-      const launchDate = new Date('2024-10-12')
+      const launchDate = new Date('2024-10-15')
       const currentDate = new Date()
       const daysSinceLaunch = Math.floor((currentDate.getTime() - launchDate.getTime()) / (1000 * 3600 * 24))
 
@@ -55,7 +56,7 @@ export function Hero() {
   }, [])
 
   const handleCreateBlink = () => {
-    router.push('/generate-blinks')
+    router.push('/blinks')
   }
 
   return (
@@ -89,13 +90,13 @@ export function Hero() {
               <span className="block text-primary">The Storm of Solana</span>
             </h1>
             <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl">
-              The Storm of Solana: Brace Yourself for the Fastest, Funniest, and Most Chaotic Token on the Blockchain!
+              The Storm of Solana: Brace Yourself for the Fastest and Most Impactful Token on the Blockchain!
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/pages/buy" passHref legacyBehavior>
+              <Link href="/dashboard" passHref legacyBehavior>
                 <Button asChild className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center transition-colors duration-300">
                   <a>
-                    Buy $MILTON
+                    Go Dashboard
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </a>
                 </Button>
@@ -106,12 +107,12 @@ export function Hero() {
                 onClick={handleCreateBlink}
               >
                 <Zap className="mr-2 h-5 w-5" />
-                Create Blink
+                Create an Blink
               </Button>
             </div>
           </div>
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl"
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
             initial="hidden"

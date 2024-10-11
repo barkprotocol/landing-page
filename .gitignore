@@ -39,3 +39,7 @@ next-env.d.ts
 
 # Docker
 postgres_data/
+
+# Milton Programs and Keypairs
+programs/token/milton
+keypairs.json

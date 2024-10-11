@@ -2,20 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
-import { AlertCircle, ArrowLeft, Zap, ArrowRight, Loader2 } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Zap, ArrowRight, Loader2, Info } from 'lucide-react'
 import { WalletButton } from "@/components/ui/wallet-button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Mock exchange rate (replace with actual API call in production)
-const MILTON_TO_SOL_RATE = 0.00001
+const MILTON_TO_SOL_RATE = 0.000001
 // Add the contract address (replace with actual contract address)
 const CONTRACT_ADDRESS = "YourContractAddressHere"
 const SOLSCAN_URL = `https://solscan.io/token/${CONTRACT_ADDRESS}`
@@ -28,6 +30,8 @@ export default function BuyMiltonPage() {
   const [solAmount, setSolAmount] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (miltonAmount) {
@@ -43,40 +47,57 @@ export default function BuyMiltonPage() {
     if (!publicKey) {
       toast({
         title: "Wallet not connected",
-        description: "Please connect your wallet to buy Milton tokens.",
+        description: "Please connect your wallet to buy SPL tokens.",
         variant: "destructive",
       })
       return
     }
 
     if (!miltonAmount || parseFloat(miltonAmount) <= 0) {
-      toast({
-        title: "Invalid amount",
-        description: "Please enter a valid amount of Milton tokens to buy.",
-        variant: "destructive",
-      })
+      setError("Please enter a valid amount of SPL tokens to buy.")
       return
     }
 
+    setShowConfirmDialog(true)
+  }
+
+  const confirmPurchase = async () => {
+    setShowConfirmDialog(false)
     setIsSubmitting(true)
     setProgress(0)
+    setError(null)
 
-    // Simulate transaction process
-    const interval = setInterval(() => {
-      setProgress((oldProgress) => {
-        const newProgress = oldProgress + 10
-        if (newProgress === 100) {
-          clearInterval(interval)
-          setIsSubmitting(false)
-          toast({
-            title: "Purchase Successful!",
-            description: `You have successfully purchased ${miltonAmount} MILTON tokens.`,
-          })
-          // In a real application, you would handle the actual transaction here
-        }
-        return newProgress
+    try {
+      // Simulate transaction process
+      const interval = setInterval(() => {
+        setProgress((oldProgress) => {
+          const newProgress = oldProgress + 10
+          if (newProgress === 100) {
+            clearInterval(interval)
+            setIsSubmitting(false)
+            toast({
+              title: "Purchase Successful!",
+              description: `You have successfully purchased ${miltonAmount} MILTON tokens.`,
+            })
+            // In a real application, you would handle the actual transaction here
+          }
+          return newProgress
+        })
+      }, 500)
+
+      // Simulating a potential error
+      if (Math.random() < 0.1) { // 10% chance of error
+        throw new Error("Transaction failed. Please try again.")
+      }
+    } catch (error) {
+      setIsSubmitting(false)
+      setError(error instanceof Error ? error.message : "An unknown error occurred")
+      toast({
+        title: "Transaction Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
       })
-    }, 500)
+    }
   }
 
   return (
@@ -88,8 +109,8 @@ export default function BuyMiltonPage() {
       >
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold flex items-center text-black">
-            <img src="https://ucarecdn.com/e02d02d3-5ef9-436a-aab2-d67f026110ce/miltonicon.png" alt="Icon" className="mr-2 h-14 w-14" />
-            Buy Milton Tokens
+            <img src="https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg" alt="Milton Icon" className="mr-2 h-14 w-14" />
+            Buy $Milton´s
           </h1>
           <div className="flex items-center space-x-4">
             <Button onClick={() => router.push('/')} variant="outline" className="flex items-center text-blue">
@@ -119,14 +140,36 @@ export default function BuyMiltonPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="milton-amount">MILTON Amount</Label>
-                <Input
-                  id="milton-amount"
-                  type="number"
-                  placeholder="Enter MILTON amount"
-                  value={miltonAmount}
-                  onChange={(e) => setMiltonAmount(e.target.value)}
-                  disabled={isSubmitting}
-                />
+                <div className="relative">
+                  <Input
+                    id="milton-amount"
+                    type="number"
+                    placeholder="Enter MILTON amount"
+                    value={miltonAmount}
+                    onChange={(e) => {
+                      setMiltonAmount(e.target.value)
+                      setError(null)
+                    }}
+                    disabled={isSubmitting}
+                    aria-invalid={error ? "true" : "false"}
+                    aria-describedby={error ? "milton-amount-error" : undefined}
+                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Enter the amount of MILTON tokens you wish to purchase.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                {error && (
+                  <p id="milton-amount-error" className="text-sm text-red-500 mt-1">
+                    {error}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sol-amount">SOL Equivalent</Label>
@@ -193,6 +236,21 @@ export default function BuyMiltonPage() {
             <Progress value={progress} className="w-full" />
           </div>
         )}
+
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Purchase</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to purchase {miltonAmount} MILTON tokens for {solAmount} SOL?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>Cancel</Button>
+              <Button onClick={confirmPurchase}>Confirm Purchase</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </div>
   )
