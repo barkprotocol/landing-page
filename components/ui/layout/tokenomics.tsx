@@ -34,6 +34,9 @@ const tokenAllocation = {
         '#0f172a',
         '#020617',
       ],
+      iconColor: [
+         '#F0E651',
+      ],
       borderWidth: 1,
     },
   ],
@@ -43,7 +46,7 @@ const tokenMetrics = [
   { label: 'Total Supply', value: '1,000,000,000 MILTON' },
   { label: 'Initial Circulating Supply', value: '400,000,000 MILTON' },
   { label: 'Initial Market Cap', value: '$4,000,000' },
-  { label: 'Initial Token Price', value: '$0.01' },
+  { label: 'Initial Token Price', value: '$0.000001' },
   { label: 'Token Type', value: 'SPL (Solana)' },
   { label: 'Decimals', value: '9' },
 ]

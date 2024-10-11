@@ -19,7 +19,7 @@ export function About() {
 
   const features = [
     { title: "Lightning Fast", description: "Built on Solana for blazing speed", details: "Experience transaction speeds of up to 65,000 per second with sub-second finality." },
-    { title: "Meme Powered", description: "Fueled by the internet's best humor", details: "Our AI-driven meme generator ensures a constant supply of fresh, trending memes." },
+    { title: "Meme Powered", description: "Fueled by the internet's best humor", details: "Our Blink meme generator ensures a constant supply of fresh, trending memes." },
     { title: "Community Driven", description: "Governed by meme enthusiasts", details: "Participate in DAO voting where the funniest meme proposals win!" },
     { title: "DeFi Integration", description: "Earn yields with your memes", details: "Stake your MILTON tokens in our meme farms for hilarious returns." }
   ]
@@ -51,7 +51,7 @@ export function About() {
             onMouseLeave={() => setIsHovered(false)}
           >
             <Image
-              src="/public/images/tornado-on-transparent-background-free-png.webp"
+              src="https://ucarecdn.com/137628fb-f546-490c-887a-1d0d3177f542/MiltonCard.png"
               alt="Milton Token Illustration"
               width={500}
               height={500}

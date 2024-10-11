@@ -10,8 +10,8 @@ export function Footer() {
           <div className="space-y-8 xl:col-span-1">
             <Link href="/" className="flex items-center space-x-2">
               <img
-                className="h-10 w-10"
-                src="https://ucarecdn.com/e02d02d3-5ef9-436a-aab2-d67f026110ce/miltonicon.png"
+                className="h-12 w-12"
+                src="https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg"
                 alt="Milton"
               />
               <span className="text-2xl font-bold text-white">MILTON</span>

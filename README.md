@@ -1,5 +1,7 @@
 # MILTON WEB UI / WEB3 DAPP
 
+**The Storm of Solana**: Brace Yourself for the Fastest, Funniest, and Most Chaotic Token on the Solana Blockchain!
+
 ## Milton Token Management API Documentation
 
 This OpenAPI specification defines an API for interacting with Milton tokens on the Solana blockchain. It includes the following features:

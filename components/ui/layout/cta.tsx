@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ArrowRight, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowRight, Zap } from 'lucide-react'
+import { motion } from 'framer-motion'
 import {
   Dialog,
   DialogContent,
@@ -14,34 +13,34 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { toast } from '@/components/ui/use-toast'
 
 export function CTA() {
-  const [timeLeft, setTimeLeft] = useState(24 * 60 * 60) // 24 hours in seconds
   const [email, setEmail] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0))
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  const formatTime = (time: number) => {
-    const hours = Math.floor(time / 3600)
-    const minutes = Math.floor((time % 3600) / 60)
-    const seconds = time % 60
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send the email to your backend
-    console.log('Email submitted:', email)
     setIsModalOpen(false)
-    // Redirect to blink creation page
-    window.location.href = '/create-blink'
+    
+    try {
+      // Simulating an API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      toast({
+        title: "Welcome to Milton!",
+        description: "Get ready to create your first Blink NFT!",
+      })
+      
+      // Redirect to blink creation page
+      window.location.href = '/create-blink'
+    } catch (error) {
+      toast({
+        title: "Oops! Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -56,21 +55,19 @@ export function CTA() {
           <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl mb-6">
             Ready to join the Milton madness?
           </h2>
-          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-600 mb-6">
+          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-600 mb-10">
             Don't miss out on the meme revolution! Create your Milton blinks NFT now and become part of the funniest and fastest-growing community on Solana.
           </p>
-          <div className="text-3xl font-bold text-primary mb-8">
-            Time left: {formatTime(timeLeft)}
-          </div>
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className="flex justify-center space-x-4"
           >
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90 text-white rounded-full text-lg px-8 py-4 inline-flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg">
                   Create Blink
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <Zap className="ml-2 h-5 w-5" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
@@ -91,10 +88,14 @@ export function CTA() {
                   />
                   <Button type="submit" className="w-full">
                     Start Creating
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </form>
               </DialogContent>
             </Dialog>
+            <Button variant="outline" className="rounded-full text-lg px-8 py-4 inline-flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg">
+              Learn More
+            </Button>
           </motion.div>
         </motion.div>
       </div>

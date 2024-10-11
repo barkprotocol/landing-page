@@ -16,6 +16,9 @@ import { Progress } from "@/components/ui/progress"
 
 // Mock exchange rate (replace with actual API call in production)
 const MILTON_TO_SOL_RATE = 0.00001
+// Add the contract address (replace with actual contract address)
+const CONTRACT_ADDRESS = "YourContractAddressHere"
+const SOLSCAN_URL = `https://solscan.io/token/${CONTRACT_ADDRESS}`
 
 export default function BuyMiltonPage() {
   const router = useRouter()
@@ -77,19 +80,19 @@ export default function BuyMiltonPage() {
   }
 
   return (
-    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8 bg-navy-800 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold flex items-center">
-            <Zap className="mr-2 h-8 w-8 text-primary" />
+          <h1 className="text-3xl sm:text-4xl font-bold flex items-center text-black">
+            <img src="https://ucarecdn.com/e02d02d3-5ef9-436a-aab2-d67f026110ce/miltonicon.png" alt="Icon" className="mr-2 h-14 w-14" />
             Buy Milton Tokens
           </h1>
           <div className="flex items-center space-x-4">
-            <Button onClick={() => router.push('/')} variant="outline" className="flex items-center">
+            <Button onClick={() => router.push('/')} variant="outline" className="flex items-center text-blue">
               <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
               Back to Home
             </Button>
@@ -102,12 +105,12 @@ export default function BuyMiltonPage() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Wallet not connected</AlertTitle>
             <AlertDescription>
-              Please connect your wallet to buy Milton tokens.
+              Please connect your wallet to buy MILTON tokens.
             </AlertDescription>
           </Alert>
         )}
 
-        <Card className="w-full max-w-md mx-auto">
+        <Card className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg">
           <CardHeader>
             <CardTitle>Purchase Milton Tokens</CardTitle>
             <CardDescription>Enter the amount of MILTON you want to buy.</CardDescription>
@@ -156,6 +159,35 @@ export default function BuyMiltonPage() {
             </p>
           </CardFooter>
         </Card>
+
+        {/* Information Card */}
+        <Card className="mt-8 w-full max-w-md mx-auto bg-white rounded-lg shadow-lg">
+          <CardHeader>
+            <CardTitle>About Milton Tokens</CardTitle>
+            <CardDescription>Key details and benefits of MILTON tokens.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700">
+              Milton tokens are designed to facilitate transactions within our ecosystem. 
+              They offer unique benefits such as access to exclusive events, discounts on services, and rewards for community engagement.
+            </p>
+            <p className="mt-2 text-gray-700">
+              Always ensure you are purchasing from official channels to avoid scams and fraud. 
+              Stay informed about token updates and community announcements through our official channels.
+            </p>
+            <div className="mt-4">
+              <p className="text-gray-700">
+                <strong>Contract Address:</strong> {CONTRACT_ADDRESS}
+              </p>
+              <p className="text-gray-700">
+                <a href={SOLSCAN_URL} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                  View on Solscan
+                </a>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {isSubmitting && (
           <div className="mt-4 max-w-md mx-auto">
             <Progress value={progress} className="w-full" />

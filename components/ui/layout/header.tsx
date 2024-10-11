@@ -44,10 +44,10 @@ export function Header() {
         <div className="flex justify-between items-center py-4">
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="https://ucarecdn.com/e02d02d3-5ef9-436a-aab2-d67f026110ce/miltonicon.png"
+              src="https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg"
               alt="Milton Logo"
-              width={50}
-              height={50}
+              width={52}
+              height={52}
               className="w-12 h-12"
               priority
             />

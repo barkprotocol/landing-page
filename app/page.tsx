@@ -55,8 +55,8 @@ export default function HomePage() {
         <About />
         <Tokenomics />
         <FAQ />
-        <Newsletter />
         <CTA />
+        <Newsletter />
       </motion.main>
       <Footer />
     </div>

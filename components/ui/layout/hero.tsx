@@ -93,7 +93,7 @@ export function Hero() {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Link href="/pages/buy" passHref legacyBehavior>
-                <Button asChild className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-full inline-flex items-center justify-center transition-colors duration-300">
+                <Button asChild className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center transition-colors duration-300">
                   <a>
                     Buy $MILTON
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -102,7 +102,7 @@ export function Hero() {
               </Link>
               <Button 
                 variant="outline" 
-                className="w-full sm:w-auto bg-transparent hover:bg-white/10 text-white font-semibold py-3 px-6 rounded-full inline-flex items-center justify-center border border-white transition-colors duration-300"
+                className="w-full sm:w-auto bg-transparent hover:bg-white/10 text-white font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center border border-white transition-colors duration-300"
                 onClick={handleCreateBlink}
               >
                 <Zap className="mr-2 h-5 w-5" />
