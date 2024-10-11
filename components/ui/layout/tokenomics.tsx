@@ -185,7 +185,7 @@ export default function Tokenomics() {
                   <CardContent>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
                       <div className="w-full max-w-md">
-                        <ChartContainer config={tokenAllocation.datasets[0]} className="w-full max-w-md mx-auto">
+                        <ChartContainer>
                           <Pie 
                             data={tokenAllocation} 
                             options={{ 
@@ -265,6 +265,7 @@ export default function Tokenomics() {
                           <CardHeader>
                             <CardTitle className="text-lg flex items-center">
                               <item.icon className="mr-3 h-6 w-6 text-primary" />
+                              
                               {item.title}
                             </CardTitle>
                           </CardHeader>
@@ -287,7 +288,7 @@ export default function Tokenomics() {
                     </CardHeader>
                     <CardContent>
                       <div className="w-full h-80">
-                        <ChartContainer config={emissionSchedule.datasets[0]}>
+                        <ChartContainer>
                           <Line 
                             data={emissionSchedule} 
                             options={{
