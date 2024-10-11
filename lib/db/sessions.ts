@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm'
-import { db } from './drizzle'
-import { sessions } from './schema'
+import { eq, lt } from 'drizzle-orm';
+import { db } from './drizzle';
+import { sessions } from './schema';
 
 export async function createSession(userId: number, token: string, expiresAt: Date) {
-  await db.insert(sessions).values({ userId, token, expiresAt })
+  await db.insert(sessions).values({ userId, token, expiresAt });
 }
 
 export async function getSession(token: string) {
@@ -11,15 +11,16 @@ export async function getSession(token: string) {
     .select()
     .from(sessions)
     .where(eq(sessions.token, token))
-    .limit(1)
+    .limit(1);
 
-  return session
+  return session;
 }
 
 export async function deleteSession(token: string) {
-  await db.delete(sessions).where(eq(sessions.token, token))
+  await db.delete(sessions).where(eq(sessions.token, token));
 }
 
 export async function deleteExpiredSessions() {
-  await db.delete(sessions).where(eq(sessions.expiresAt, new Date()))
+  const now = new Date(); // Get the current date and time
+  await db.delete(sessions).where(lt(sessions.expiresAt, now)); // Delete sessions where expiresAt is less than now
 }

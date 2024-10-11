@@ -16,7 +16,7 @@ const logger = new Logger('milton-token-utils')
 
 // MILTON Token Constants
 const MILTON_DECIMALS = 9
-const MILTON_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_MILTON_TOKEN_ADDRESS!)
+const MILTON_MINT_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_MILTON_MINT_ADDRESS!)
 
 /**
  * Get the balance of MILTON tokens for a given wallet address
@@ -29,7 +29,7 @@ export async function getMiltonBalance(
   ownerAddress: PublicKey
 ): Promise<number> {
   try {
-    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, ownerAddress)
+    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, ownerAddress)
     const tokenAccountInfo = await getAccount(connection, associatedTokenAddress)
     
     return Number(tokenAccountInfo.amount) / Math.pow(10, MILTON_DECIMALS)
@@ -52,7 +52,7 @@ export async function createMiltonAccountIfNotExist(
   ownerAddress: PublicKey
 ): Promise<PublicKey> {
   try {
-    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, ownerAddress)
+    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, ownerAddress)
     
     // Check if the account already exists
     const accountInfo = await connection.getAccountInfo(associatedTokenAddress)
@@ -63,7 +63,7 @@ export async function createMiltonAccountIfNotExist(
           payer.publicKey,
           associatedTokenAddress,
           ownerAddress,
-          MILTON_TOKEN_ADDRESS
+          MILTON_MINT_ADDRESS
         )
       )
       
@@ -94,8 +94,8 @@ export async function transferMiltonTokens(
   amount: number
 ): Promise<string> {
   try {
-    const fromTokenAccount = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, fromAddress)
-    const toTokenAccount = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, toAddress)
+    const fromTokenAccount = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, fromAddress)
+    const toTokenAccount = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, toAddress)
     
     // Create the recipient's associated token account if it doesn't exist
     await createMiltonAccountIfNotExist(connection, payer, toAddress)
@@ -105,7 +105,7 @@ export async function transferMiltonTokens(
     const transaction = new Transaction().add(
       createTransferCheckedInstruction(
         fromTokenAccount,
-        MILTON_TOKEN_ADDRESS,
+        MILTON_MINT_ADDRESS,
         toTokenAccount,
         fromAddress,
         tokenAmount,
@@ -132,7 +132,7 @@ export async function doesMiltonAccountExist(
   ownerAddress: PublicKey
 ): Promise<boolean> {
   try {
-    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, ownerAddress)
+    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, ownerAddress)
     const accountInfo = await connection.getAccountInfo(associatedTokenAddress)
     return accountInfo !== null
   } catch (error) {
@@ -148,7 +148,7 @@ export async function doesMiltonAccountExist(
  */
 export async function getMiltonTotalSupply(connection: Connection): Promise<number> {
   try {
-    const mintInfo = await getMint(connection, MILTON_TOKEN_ADDRESS)
+    const mintInfo = await getMint(connection, MILTON_MINT_ADDRESS)
     return Number(mintInfo.supply) / Math.pow(10, MILTON_DECIMALS)
   } catch (error) {
     logger.error('Error getting MILTON total supply:', error)
@@ -218,7 +218,7 @@ export async function getMiltonTransactionHistory(
   limit: number = 10
 ): Promise<string[]> {
   try {
-    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, ownerAddress)
+    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, ownerAddress)
     const transactions = await connection.getSignaturesForAddress(associatedTokenAddress, { limit })
     return transactions.map(tx => tx.signature)
   } catch (error) {
@@ -242,13 +242,13 @@ export async function burnMiltonTokens(
   amount: number
 ): Promise<string> {
   try {
-    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, ownerAddress)
+    const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, ownerAddress)
     const tokenAmount = BigInt(Math.round(amount * Math.pow(10, MILTON_DECIMALS)))
 
     const transaction = new Transaction().add(
       createBurnCheckedInstruction(
         associatedTokenAddress,
-        MILTON_TOKEN_ADDRESS,
+        MILTON_MINT_ADDRESS,
         ownerAddress,
         tokenAmount,
         MILTON_DECIMALS
@@ -265,7 +265,7 @@ export async function burnMiltonTokens(
 
 export default {
   MILTON_DECIMALS,
-  MILTON_TOKEN_ADDRESS,
+  MILTON_MINT_ADDRESS,
   getMiltonBalance,
   createMiltonAccountIfNotExist,
   transferMiltonTokens,

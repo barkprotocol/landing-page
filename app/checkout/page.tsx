@@ -21,7 +21,7 @@ import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Token addresses (replace with actual addresses in production)
-const MILTON_TOKEN_ADDRESS = new PublicKey('MiLTYKtNPxqKZCwQTNpJEKKwPZTVBQCRKzUXGCPFVmGe')
+const MILTON_MINT_ADDRESS = new PublicKey('MiLTYKtNPxqKZCwQTNpJEKKwPZTVBQCRKzUXGCPFVmGe')
 const USDC_TOKEN_ADDRESS = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
 
 // Exchange rate constants
@@ -73,7 +73,7 @@ export default function BuyMiltonPage() {
       window.crypto.getRandomValues(reference)
 
       const transferFields: TransferRequestURLFields = {
-        recipient: MILTON_TOKEN_ADDRESS,
+        recipient: MILTON_MINT_ADDRESS,
         amount: new BigNumber(amount),
         splToken: paymentCurrency === 'USDC' ? USDC_TOKEN_ADDRESS : undefined,
         reference,
@@ -115,8 +115,8 @@ export default function BuyMiltonPage() {
     setProgress(0)
 
     try {
-      const miltonMint = await getMint(connection, MILTON_TOKEN_ADDRESS)
-      const buyerMiltonAccount = await getAssociatedTokenAddress(MILTON_TOKEN_ADDRESS, publicKey)
+      const miltonMint = await getMint(connection, MILTON_MINT_ADDRESS)
+      const buyerMiltonAccount = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, publicKey)
 
       let transaction = new Transaction()
 
@@ -128,7 +128,7 @@ export default function BuyMiltonPage() {
             publicKey,
             buyerMiltonAccount,
             publicKey,
-            MILTON_TOKEN_ADDRESS
+            MILTON_MINT_ADDRESS
           )
         )
       }
@@ -137,7 +137,7 @@ export default function BuyMiltonPage() {
         transaction.add(
           SystemProgram.transfer({
             fromPubkey: publicKey,
-            toPubkey: MILTON_TOKEN_ADDRESS,
+            toPubkey: MILTON_MINT_ADDRESS,
             lamports: Math.floor(parseFloat(paymentAmount) * LAMPORTS_PER_SOL)
           })
         )
@@ -149,7 +149,7 @@ export default function BuyMiltonPage() {
           createTransferCheckedInstruction(
             buyerUsdcAccount,
             USDC_TOKEN_ADDRESS,
-            MILTON_TOKEN_ADDRESS,
+            MILTON_MINT_ADDRESS,
             publicKey,
             Math.floor(parseFloat(paymentAmount) * 10 ** usdcMint.decimals),
             usdcMint.decimals
@@ -160,8 +160,8 @@ export default function BuyMiltonPage() {
       // Add instruction to send Milton tokens to the buyer
       transaction.add(
         createTransferCheckedInstruction(
-          MILTON_TOKEN_ADDRESS,
-          MILTON_TOKEN_ADDRESS,
+          MILTON_MINT_ADDRESS,
+          MILTON_MINT_ADDRESS,
           buyerMiltonAccount,
           publicKey,
           Math.floor(parseFloat(miltonAmount) * 10 ** miltonMint.decimals),

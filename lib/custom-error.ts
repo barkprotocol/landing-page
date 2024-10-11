@@ -13,21 +13,39 @@ export enum ErrorType {
   TokenAccountError = 'TokenAccountError',
   BlockchainError = 'BlockchainError',
   NetworkError = 'NetworkError',
+  NotFound = 'NotFound',
+  SolanaError = 'SolanaError',
+  PaymentError = 'PaymentError',
+  WalletNotFound = 'WalletNotFound',
+  AccountNotFound = 'AccountNotFound',
+  UserNotFound = 'UserNotFound',
+  InvalidUserId = 'InvalidUserId',
+  BlinkCreationFailed = 'BlinkCreationFailed',
+  BlinkNotFound = 'BlinkNotFound',
+  InvalidBlinkData = 'InvalidBlinkData',
+  NFTMintFailed = 'NFTMintFailed',
+  NFTNotFound = 'NFTNotFound',
+  InvalidNFTData = 'InvalidNFTData',
+  NFTTransferFailed = 'NFTTransferFailed',
+  InvalidCredentials = 'InvalidCredentials',
+  UserAlreadyExists = 'UserAlreadyExists',
+  InvalidAction = 'InvalidAction', // Added this line
 }
 
 export class CustomError extends Error {
   constructor(public type: ErrorType, message: string) {
-    super(message)
-    this.name = 'CustomError'
+    super(message);
+    this.name = 'CustomError';
   }
 
   get statusCode(): number {
     switch (this.type) {
       case ErrorType.RateLimitExceeded:
-        return 429
+        return 429; // Too Many Requests
       case ErrorType.Unauthorized:
       case ErrorType.InvalidSignature:
-        return 401
+      case ErrorType.InvalidCredentials:
+        return 401; // Unauthorized
       case ErrorType.TransactionSimulationFailed:
       case ErrorType.TransactionNotFound:
       case ErrorType.TransactionExpired:
@@ -35,16 +53,36 @@ export class CustomError extends Error {
       case ErrorType.SlippageExceeded:
       case ErrorType.InsufficientFunds:
       case ErrorType.TokenAccountError:
-        return 400
+      case ErrorType.BlinkCreationFailed:
+      case ErrorType.InvalidBlinkData:
+      case ErrorType.NFTMintFailed:
+      case ErrorType.InvalidNFTData:
+      case ErrorType.NFTTransferFailed:
+      case ErrorType.InvalidAction:
+        return 400; // Bad Request
       case ErrorType.InvalidInput:
-        return 422
+        return 422; // Unprocessable Entity
       case ErrorType.ExternalApiError:
       case ErrorType.NetworkError:
-        return 503
+        return 503; // Service Unavailable
       case ErrorType.BlockchainError:
-        return 502
+        return 502; // Bad Gateway
+      case ErrorType.NotFound:
+      case ErrorType.WalletNotFound:
+      case ErrorType.AccountNotFound:
+      case ErrorType.UserNotFound:
+      case ErrorType.InvalidUserId:
+      case ErrorType.BlinkNotFound:
+      case ErrorType.NFTNotFound:
+        return 404; // Not Found
+      case ErrorType.SolanaError:
+        return 500; // Internal Server Error
+      case ErrorType.PaymentError:
+        return 402; // Payment Required
+      case ErrorType.UserAlreadyExists:
+        return 409; // Conflict
       default:
-        return 500
+        return 500; // Internal Server Error
     }
   }
 
@@ -53,6 +91,6 @@ export class CustomError extends Error {
       error: this.type,
       message: this.message,
       statusCode: this.statusCode,
-    }
+    };
   }
 }

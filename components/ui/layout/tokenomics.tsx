@@ -60,7 +60,7 @@ const emissionSchedule = {
       fill: true,
     },
     {
-      label: 'Total Supply',
+      label: 'Max Supply',
       data: [1000000000, 1000000000, 1000000000, 1000000000, 1000000000, 1000000000],
       borderColor: '#94a3b8',
       backgroundColor: 'rgba(148, 163, 184, 0.2)',
@@ -71,13 +71,13 @@ const emissionSchedule = {
 }
 
 const tokenDetails = [
-  { attribute: 'Token Name', value: 'Milton' },
+  { attribute: 'Token Name', value: 'MILTON' },
   { attribute: 'Token Symbol', value: 'MILTON' },
+  { attribute: 'Decimals', value: '9' },
   { attribute: 'Blockchain', value: 'Solana' },
   { attribute: 'Token Standard', value: 'SPL' },
   { attribute: 'Max Supply', value: '1,000,000,000 MILTON' },
   { attribute: 'Initial Circulating Supply', value: '400,000,000 MILTON' },
-  { attribute: 'Decimals', value: '9' },
   { attribute: 'Contract Address', value: 'Coming soon' },
 ]
 
@@ -100,7 +100,7 @@ export default function Tokenomics() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-foreground mb-4">MILTON Tokenomics</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">Tokenomics</h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Understand the meme-powered economics behind MILTON and its mission for global good
           </p>
@@ -137,8 +137,8 @@ export default function Tokenomics() {
               <TabsContent value="details" className="space-y-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-2xl">MILTON Token Overview</CardTitle>
-                    <CardDescription>The meme-powered cryptocurrency on Solana</CardDescription>
+                    <CardTitle className="text-2xl">MILTON Overview</CardTitle>
+                    <CardDescription>The meme-powered token on Solana</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
@@ -179,8 +179,8 @@ export default function Tokenomics() {
               <TabsContent value="allocation" className="space-y-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-2xl">Token Allocation</CardTitle>
-                    <CardDescription>Distribution of the total token supply</CardDescription>
+                    <CardTitle className="text-2xl">Allocation</CardTitle>
+                    <CardDescription>Distribution of the max token supply</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
@@ -249,7 +249,7 @@ export default function Tokenomics() {
               <TabsContent value="utility" className="space-y-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-2xl">Token Utility</CardTitle>
+                    <CardTitle className="text-2xl">Utility</CardTitle>
                     <CardDescription>Ways to use your MILTON tokens</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -259,9 +259,9 @@ export default function Tokenomics() {
                         A portion of all transaction fees is allocated to charitable causes and global initiatives, making every MILTON transaction a step towards positive change.
                       </p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-6">
                       {tokenUtility.map((item, index) => (
-                        <Card  key={index} className="hover:shadow-lg transition-shadow duration-300">
+                        <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
                           <CardHeader>
                             <CardTitle className="text-lg flex items-center">
                               <item.icon className="mr-3 h-6 w-6 text-primary" />
@@ -282,7 +282,7 @@ export default function Tokenomics() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-2xl">Token Emission Schedule</CardTitle>
+                      <CardTitle className="text-2xl">Emission Schedule</CardTitle>
                       <CardDescription>Projected token release over time</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -455,7 +455,7 @@ export default function Tokenomics() {
               <TabsContent value="buy" className="space-y-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-2xl">Buy MILTON Tokens</CardTitle>
+                    <CardTitle className="text-2xl">Buy MILTON Tokens (MILTON)</CardTitle>
                     <CardDescription>Get your MILTON tokens now and join the meme revolution!</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -471,7 +471,7 @@ export default function Tokenomics() {
                     </ol>
                     <div className="mt-8">
                       <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                        View Partner DEXes
+                        View DEXes
                         <ChevronRight className="ml-2 h-5 w-5" />
                       </Button>
                     </div>

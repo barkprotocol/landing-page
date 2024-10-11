@@ -27,11 +27,11 @@ export const MILTON_STAKING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_M
 // Milton NFT Program ID
 export const MILTON_NFT_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_MILTON_NFT_PROGRAM_ID!)
 
-// Token addresses
-export const MILTON_TOKEN_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_MILTON_TOKEN_ADDRESS!)
-export const USDC_TOKEN_ADDRESS = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
-export const USDT_TOKEN_ADDRESS = new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB')
-export const SOL_TOKEN_ADDRESS = new PublicKey('So11111111111111111111111111111111111111112')
+// Token mint addresses
+export const MILTON_MINT_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_MILTON_MINT_ADDRESS!)
+export const USDC_MINT_ADDRESS = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+export const USDT_MINT_ADDRESS = new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB')
+export const SOL_MINT_ADDRESS = new PublicKey('So11111111111111111111111111111111111111112')
 
 // Wrapped SOL mint address
 export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
@@ -54,25 +54,25 @@ export const TOKEN_INFO: { [key: string]: TokenInfo } = {
   'MILTON': {
     symbol: 'MILTON',
     name: 'Milton Token',
-    mintAddress: MILTON_TOKEN_ADDRESS,
+    mintAddress: MILTON_MINT_ADDRESS,
     decimals: 9,
   },
   'USDC': {
     symbol: 'USDC',
     name: 'USD Coin',
-    mintAddress: USDC_TOKEN_ADDRESS,
+    mintAddress: USDC_MINT_ADDRESS,
     decimals: 6,
   },
   'USDT': {
     symbol: 'USDT',
     name: 'Tether USD',
-    mintAddress: USDT_TOKEN_ADDRESS,
+    mintAddress: USDT_MINT_ADDRESS,
     decimals: 6,
   },
   'SOL': {
     symbol: 'SOL',
     name: 'Solana',
-    mintAddress: SOL_TOKEN_ADDRESS,
+    mintAddress: SOL_MINT_ADDRESS,
     decimals: 9,
   },
   'WSOL': {
@@ -164,10 +164,10 @@ export default {
   RAYDIUM_LIQUIDITY_POOL_PROGRAM_ID,
   MILTON_STAKING_PROGRAM_ID,
   MILTON_NFT_PROGRAM_ID,
-  MILTON_TOKEN_ADDRESS,
-  USDC_TOKEN_ADDRESS,
-  USDT_TOKEN_ADDRESS,
-  SOL_TOKEN_ADDRESS,
+  MILTON_MINT_ADDRESS,
+  USDC_MINT_ADDRESS,
+  USDT_MINT_ADDRESS,
+  SOL_MINT_ADDRESS,
   WRAPPED_SOL_MINT,
   MILTON_TREASURY_WALLET,
   MILTON_LIQUIDITY_POOL,

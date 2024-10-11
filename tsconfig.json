@@ -6,7 +6,6 @@
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -19,22 +18,23 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["*"]
     },
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "allowJs": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-, "lib/db/prisma.schema"  ],
+    ".next/types/**/*.ts",
+    "lib/db/prisma.schema",
+    "next.config.js"
+  ],
   "exclude": [
     "node_modules"
   ]

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Connection, PublicKey } from '@solana/web3.js'
+import { Connection, PublicKey, Transaction } from '@solana/web3.js'
 import { createJupiterApiClient, RouteInfo, TOKEN_LIST_URL } from '@jup-ag/api'
 import { TokenInfo } from '@solana/spl-token-registry'
 import { Button } from '@/components/ui/button'
