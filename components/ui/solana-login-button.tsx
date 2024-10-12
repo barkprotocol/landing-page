@@ -10,14 +10,14 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { signIn } from '@/lib/actions';
 import { useToast } from "@/components/ui/use-toast";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const DynamicWalletMultiButton = dynamic(
   () => import('@solana/wallet-adapter-react-ui').then((mod) => mod.WalletMultiButton),
   { ssr: false }
 );
 
-const SOLANA_ICON_URL = "https://cryptologos.cc/logos/solana-sol-logo.svg?v=024";
+const SOLANA_ICON_URL = "https://cryptologos.cc/logos/solana-sol-logo.png?v=024";
 
 export function SolanaLoginButton() {
   const { wallet, connect, disconnect, connecting, connected, publicKey, signMessage } = useWallet();
@@ -25,8 +25,9 @@ export function SolanaLoginButton() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isSolanaConfirmed, setIsSolanaConfirmed] = useState(false);
   const { toast } = useToast();
-  const router = useRouter(); // For redirection
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -74,13 +75,16 @@ export function SolanaLoginButton() {
         throw new Error(result.error);
       }
       
+      setIsSolanaConfirmed(true); // Set Solana confirmation to true
       toast({
         title: "Login Successful",
         description: "You have successfully logged in with your Solana wallet.",
       });
       
-      // Redirect to dashboard or desired page after successful login
-      router.push('/dashboard'); // Replace '/dashboard' with your desired route
+      // Delay the redirect to show the success message
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
     } catch (error) {
       console.error('Failed to login with Solana:', error);
       toast({
@@ -105,14 +109,15 @@ export function SolanaLoginButton() {
 
   const buttonClasses = cn(
     "bg-gray-800 text-white hover:bg-gray-700 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600",
-    "font-regular px-4 py-2 rounded-md transition-all duration-200 ease-in-out",
-    "transform hover:scale-100 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-opacity-60"
+    "font-regular px-6 py-3 rounded-md transition-all duration-200 ease-in-out",
+    "transform hover:scale-100 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-opacity-60",
+    "w-full sm:w-auto min-w-[367px]" 
   );
 
   if (!mounted) {
     return (
       <Button variant="outline" className={buttonClasses} disabled>
-        <Image src={SOLANA_ICON_URL} alt="Solana Logo" width={20} height={20} className="mr-2" />
+        <Image src={SOLANA_ICON_URL} alt="Solana Logo" width={24} height={24} className="mr-3" />
         <span>Connect Wallet</span>
       </Button>
     );
@@ -124,13 +129,18 @@ export function SolanaLoginButton() {
         variant="outline"
         className={buttonClasses}
         onClick={isLoggingIn ? undefined : handleLogin}
-        disabled={isLoggingIn}
+        disabled={isLoggingIn || isSolanaConfirmed} // Added isSolanaConfirmed to disable button
       >
         <Image src={SOLANA_ICON_URL} alt="Solana Logo" width={20} height={20} className="mr-2" />
         {isLoggingIn ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
             <span>Logging in...</span>
+          </>
+        ) : isSolanaConfirmed ? (
+          <>
+            <span className="sr-only">Solana Confirmed</span>
+            <span aria-hidden="true">Solana Confirmed - Redirecting...</span>
           </>
         ) : (
           <>
@@ -151,10 +161,10 @@ export function SolanaLoginButton() {
       onClick={handleConnectOrSelect}
       disabled={isConnecting || connecting}
     >
-      <Image src={SOLANA_ICON_URL} alt="Solana Logo" width={20} height={20} className="mr-2" />
+      <Image src={SOLANA_ICON_URL} alt="Solana Logo" width={24} height={24} className="mr-3" />
       {isConnecting || connecting ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
           <span>Connecting...</span>
         </>
       ) : (

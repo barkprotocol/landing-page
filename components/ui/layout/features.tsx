@@ -6,6 +6,7 @@ import { Icon } from '@iconify/react'
 import { FeatureCard } from '../feature-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 export function Features() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -73,8 +74,13 @@ export function Features() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
+          <div className="flex justify-center items-center mb-4">
+            <Badge variant="secondary" className="text-sm font-semibold px-3 py-1">
+              Features
+            </Badge>
+          </div>
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Blinkboard's Powerful Features
+            Revolutionize Your Blockchain Experience
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Discover how Blinkboard simplifies blockchain interactions, making it easy for anyone to create, manage, and engage with various blockchain activities through our innovative Blink system.

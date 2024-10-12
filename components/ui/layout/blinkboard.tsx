@@ -443,7 +443,7 @@ const APISection = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Blinkboard API</CardTitle>
+        <CardTitle className="text-2xl font-bold">Milton API</CardTitle>
         <CardDescription>Integrate Blinkboard into your applications</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -661,7 +661,7 @@ export default function Blinkboard() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl font-bold text-foreground mb-4">Experience Blinkboard MVP</h2>
+          <h2 className="text-4xl font-bold text-foreground mb-4">Experience Blinkboard</h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Lightning-fast transactions, powerful features, and an intuitive interface for Solana. Join us in shaping the future of blockchain interactions!
           </p>
@@ -688,7 +688,7 @@ export default function Blinkboard() {
           {activeTab === "overview" && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Welcome to Blinkboard MVP</CardTitle>
+                <CardTitle className="text-2xl font-bold">Welcome to Blinkboard</CardTitle>
                 <CardDescription>Explore our features and help shape the future of blockchain interactions</CardDescription>
               </CardHeader>
               <CardContent className="p-6">

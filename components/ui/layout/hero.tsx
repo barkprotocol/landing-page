@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, Zap, Users, Heart, Globe, Rocket, Flame, FileText } from 'lucide-react'
+import { ArrowRight, Zap, Users, Heart, Globe, Rocket, Flame, FileText, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 export function Hero() {
   const router = useRouter()
@@ -22,42 +23,41 @@ export function Hero() {
   }
 
   const cards = [
-    { icon: Zap, title: "Fast Transactions", description: "Experience lightning-fast transactions on the Solana blockchain.", color: "text-yellow-400" },
-    { icon: Users, title: "Community Driven", description: "Join a vibrant community of meme enthusiasts and Solana lovers.", color: "text-yellow-400" },
-    { icon: Heart, title: "Disaster Relief", description: "Support global disaster relief efforts through MILTON transactions.", color: "text-yellow-400" },
-    { icon: Globe, title: "Real-World Impact", description: "Use MILTON for charitable donations and social good initiatives.", color: "text-yellow-400" }
+    { icon: Zap, title: "Fast Transactions", description: "Experience lightning-fast transactions on the Solana blockchain." },
+    { icon: Users, title: "Community Driven", description: "Join a vibrant community of meme enthusiasts and Solana lovers." },
+    { icon: Heart, title: "Disaster Relief", description: "Support global disaster relief efforts through MILTON transactions." },
+    { icon: Globe, title: "Real-World Impact", description: "Use MILTON for charitable donations and social good initiatives." }
   ]
 
-  useEffect(() => {
-    const updateBadge = () => {
-      const launchDate = new Date('2024-10-15')
-      const currentDate = new Date()
-      const daysSinceLaunch = Math.floor((currentDate.getTime() - launchDate.getTime()) / (1000 * 3600 * 24))
+  const updateBadge = useCallback(() => {
+    const launchDate = new Date('2024-10-15')
+    const currentDate = new Date()
+    const daysSinceLaunch = Math.floor((currentDate.getTime() - launchDate.getTime()) / (1000 * 3600 * 24))
 
-      if (daysSinceLaunch < 0) {
-        setBadgeText(`Launching in ${Math.abs(daysSinceLaunch)} days`)
-        setBadgeIcon(<Rocket className="w-4 h-4 mr-1" aria-hidden="true" />)
-      } else if (daysSinceLaunch === 0) {
-        setBadgeText('Launching Today!')
-        setBadgeIcon(<Rocket className="w-4 h-4 mr-1" aria-hidden="true" />)
-      } else if (daysSinceLaunch <= 30) {
-        setBadgeText('New Launch')
-        setBadgeIcon(<Flame className="w-4 h-4 mr-1" aria-hidden="true" />)
-      } else {
-        setBadgeText('') // No badge after 30 days
-        setBadgeIcon(null)
-      }
+    if (daysSinceLaunch < 0) {
+      setBadgeText(`Launching in ${Math.abs(daysSinceLaunch)} days`)
+      setBadgeIcon(<Rocket className="w-4 h-4 mr-1 text-[#FFECB1]" aria-hidden="true" />)
+    } else if (daysSinceLaunch === 0) {
+      setBadgeText('Launching Today!')
+      setBadgeIcon(<Rocket className="w-4 h-4 mr-1 text-[#FFECB1]" aria-hidden="true" />)
+    } else if (daysSinceLaunch <= 30) {
+      setBadgeText('New Launch')
+      setBadgeIcon(<Flame className="w-4 h-4 mr-1 text-[#FFECB1]" aria-hidden="true" />)
+    } else {
+      setBadgeText('') // No badge after 30 days
+      setBadgeIcon(null)
     }
+  }, [])
 
+  useEffect(() => {
     updateBadge()
     const timer = setInterval(updateBadge, 1000 * 60 * 60) // Update every hour
 
     return () => clearInterval(timer)
-  }, [])
+  }, [updateBadge])
 
   const handleWhitepaperClick = () => {
-    // Replace with actual whitepaper URL
-    window.open('/whitepaper.pdf', '_blank', 'noopener,noreferrer')
+    window.open('https://whitepaper.miltonprotocol.com', '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -87,7 +87,7 @@ export function Hero() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                 >
-                  <Badge className="mb-4 text-sm font-semibold bg-primary text-primary-foreground px-3 py-1 rounded-full inline-flex items-center">
+                  <Badge className="mb-4 text-sm font-semibold bg-gray-900 text-[#FFECB1] px-3 py-1 rounded-full inline-flex items-center">
                     {badgeIcon}
                     {badgeText}
                   </Badge>
@@ -96,28 +96,38 @@ export function Hero() {
             </AnimatePresence>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl mb-4 text-shadow-sm">
               Welcome to Milton
-              <span className="block text-primary mt-2 text-shadow-sm">The Storm of Solana</span>
+              <span className="block text-[#FFECB1] mt-2 text-shadow-sm">The Storm of Solana</span>
             </h1>
             <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl">
-              Brace Yourself for the Fastest and Most Impactful Token on the Blockchain!
+              Brace Yourself for the Most Impactful and Innovative meme coin and ecosystem on the Blockchain!
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/blinkboard" passHref legacyBehavior>
-                <Button asChild className="w-full sm:w-48 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+              <Link href="/sign-in" passHref legacyBehavior>
+                <Button asChild className="w-full sm:w-48 bg-[#FFECB1] hover:bg-[#FFE49D] text-gray-900 font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
                   <a>
                     Blinkboard
                     <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
                   </a>
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-48 bg-transparent hover:bg-white/10 text-white font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center border border-white transition-all duration-300 shadow-lg hover:shadow-xl"
-                onClick={handleWhitepaperClick}
-              >
-                <FileText className="mr-2 h-5 w-5" aria-hidden="true" />
-                Whitepaper
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full sm:w-48 bg-transparent hover:bg-[#FFECB1]/10 text-[#FFECB1] font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center border border-[#FFECB1] transition-all duration-300 shadow-lg hover:shadow-xl"
+                      onClick={handleWhitepaperClick}
+                    >
+                      <FileText className="mr-2 h-5 w-5" aria-hidden="true" />
+                      Whitepaper
+                      <ExternalLink className="ml-2 h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Opens in a new tab</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
           <motion.div 
@@ -142,15 +152,15 @@ export function Hero() {
                 animate="visible"
                 transition={{ duration: 0.5 }}
               >
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                <Card className="bg-white/10 backdrop-blur-sm border-[#FFECB1]/20 hover:bg-[#FFECB1]/20 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                   <CardHeader className="pb-2 text-center">
                     <CardTitle className="text-xl font-semibold flex flex-col items-center">
-                      <card.icon className={`mb-2 h-8 w-8 ${card.color}`} aria-hidden="true" />
-                      <span className="text-white">{card.title}</span>
+                      <card.icon className="mb-2 h-8 w-8 text-[#FFECB1]" aria-hidden="true" />
+                      <span className="text-[#FFECB1]">{card.title}</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-center">
-                    <p className="text-gray-300 text-sm">{card.description}</p>
+                    <p className="text-[#FFF5D6] text-sm">{card.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>

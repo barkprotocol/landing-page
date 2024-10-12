@@ -41,27 +41,24 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         const encodedMessage = new TextEncoder().encode(message);
         const signedMessage = await wallet.signMessage(encodedMessage);
         
-        // Create a FormData object to pass to the signIn function
         const formData = new FormData();
         formData.append('walletAddress', wallet.publicKey.toBase58());
         formData.append('signedMessage', Buffer.from(signedMessage).toString('base64'));
         formData.append('message', message);
         
-        // Call the signIn function with the FormData
         const result = await signIn(formData);
         
         if (result.error) {
           throw new Error(result.error);
         }
 
-        // Handle successful login
-        toast.success('Logged in successfully!'); // Toast success message
+        toast.success('Logged in successfully!');
         if (redirect) {
           window.location.href = redirect;
         }
       } catch (error) {
         console.error('Solana login error:', error);
-        toast.error('Failed to login with Solana wallet'); // Toast error message
+        toast.error('Failed to login with Solana wallet');
         setState((prevState) => ({
           ...prevState,
           error: 'Failed to login with Solana wallet',
@@ -71,6 +68,8 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
       }
     }
   };
+
+  const buttonClasses = "w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700";
 
   return (
     <div className="min-h-[100dvh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
@@ -84,9 +83,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {mode === 'signin'
-            ? 'Sign in to your account'
-            : 'Create your account'}
+          {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
         </h2>
       </div>
 
@@ -97,10 +94,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
             <input type="hidden" name="priceId" value={priceId || ''} />
             <input type="hidden" name="inviteId" value={inviteId || ''} />
             <div>
-              <Label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </Label>
               <div className="mt-1">
@@ -118,10 +112,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
             </div>
 
             <div>
-              <Label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </Label>
               <div className="mt-1">
@@ -129,9 +120,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete={
-                    mode === 'signin' ? 'current-password' : 'new-password'
-                  }
+                  autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                   required
                   minLength={8}
                   maxLength={100}
@@ -148,7 +137,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
             <div>
               <Button
                 type="submit"
-                className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700"
+                className={buttonClasses}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -178,7 +167,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
             </div>
 
             <div className="mt-6">
-              <SolanaLoginButton onClick={handleSolanaLogin} />
+              <SolanaLoginButton onClick={handleSolanaLogin} className={buttonClasses} />
             </div>
           </div>
 
@@ -189,9 +178,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">
-                  {mode === 'signin'
-                    ? 'New to our platform?'
-                    : 'Already have an account?'}
+                  {mode === 'signin' ? 'New to our platform?' : 'Already have an account?'}
                 </span>
               </div>
             </div>
@@ -207,8 +194,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
           </div>
         </div>
       </div>
-      <ToastContainer /> {/* Include the ToastContainer for displaying notifications */}
+      <ToastContainer />
     </div>
   );
 }
-

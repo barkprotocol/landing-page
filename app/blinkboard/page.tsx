@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowRight, Zap, Coins, BarChart2, Image as ImageIcon, Info, RefreshCcw, Gift, CreditCard, Repeat, FileText, Heart, Shuffle, Vote, Printer, Lock, Wand2, Eye, Check, DollarSign, Bell, Shield, MessageSquare, Trash, Download, Users, Code, ChevronRight, Play, Moon, Sun } from 'lucide-react'
+import { ArrowRight, Zap, Coins, BarChart2, Image as ImageIcon, Info, RefreshCcw, Gift, CreditCard, Repeat, FileText, Heart, Shuffle, Vote, Printer, Lock, Wand2, Eye, Check, DollarSign, Bell, Shield, MessageSquare, Trash, Download, Users, Code, ChevronRight, Play } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -15,137 +15,83 @@ import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import Slider from "react-slick"
-import "slick-carousel/slick/slick.css"
-import "slick-carousel/slick/slick-theme.css"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { VideoPresentation } from "@/components/ui/video-presentation"
 
-// Import sub-components
-import BlinkboardDemo from './components/blinkboard-demo'
-import NFTOverview from './components/nft-overview'
-import BlinkTypes from './components/blink-types'
-import SubscriptionPlans from './components/subscription-plans'
-import CommunitySection from './components/community-section'
-import APISection from './components/api'
-import MintFeature from './components/mint-feature'
-
-const demoApplications = [
-  { name: "Instant Payments", image: "/placeholder.svg?height=300&width=400", description: "Experience lightning-fast Solana transactions" },
-  { name: "NFT Marketplace", image: "/placeholder.svg?height=300&width=400", description: "Create, buy, and sell unique digital assets" },
-  { name: "DeFi Dashboard", image: "/placeholder.svg?height=300&width=400", description: "Manage your decentralized finance portfolio" },
-  { name: "DAO Governance", image: "/placeholder.svg?height=300&width=400", description: "Participate in decentralized decision-making" },
-]
-
-const DemoCarousel = () => {
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 5000,
-  }
-
+const BlinkboardDemo = () => {
+  // Placeholder for BlinkboardDemo component
   return (
-    <Slider {...settings}>
-      {demoApplications.map((app, index) => (
-        <div key={index} className="px-2">
-          <Card>
-            <CardContent className="p-6">
-              <Image src={app.image} alt={app.name} width={400} height={300} className="rounded-lg mb-4" />
-              <h3 className="text-xl font-semibold mb-2">{app.name}</h3>
-              <p className="text-muted-foreground">{app.description}</p>
-            </CardContent>
-          </Card>
-        </div>
-      ))}
-    </Slider>
-  )
-}
-
-const VideoPresentation = () => {
-  return (
-    <div className="aspect-video">
-      <iframe
-        width="100%"
-        height="100%"
-        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-        title="Blinkboard Presentation"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      ></iframe>
+    <div className="p-4 bg-gray-100 rounded-lg">
+      <h3 className="text-xl font-bold mb-2">Blinkboard Demo</h3>
+      <p>This is a placeholder for the Blinkboard demo component.</p>
     </div>
   )
 }
 
-const Overview = ({ tabs, handleOpenVideoPresentation }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle className="text-2xl font-bold">Welcome to Blinkboard MVP</CardTitle>
-      <CardDescription>Explore our features and help shape the future of blockchain interactions</CardDescription>
-    </CardHeader>
-    <CardContent className="p-6">
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">Featured Demo Applications</h3>
-        <DemoCarousel />
-      </div>
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">Blinkboard Presentation</h3>
-        <VideoPresentation />
-      </div>
-      <div className="flex justify-center mt-6">
-        <Button onClick={handleOpenVideoPresentation} size="lg">
-          <Play className="mr-2 h-4 w-4" /> Open Full Presentation
-        </Button>
-      </div>
-      <div className="mt-8 space-y-4">
-        <p>Blinkboard is revolutionizing blockchain interactions. Here's what you can explore in our MVP:</p>
-        <ul className="space-y-2">
-          {tabs.slice(1).map((tab) => (
-            <li key={tab.id} className="flex items-center">
-              <ChevronRight className="mr-2 h-4 w-4 text-primary" />
-              <strong>{tab.label}:</strong> <span className="ml-1">Explore {tab.label.toLowerCase()} features</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </CardContent>
-  </Card>
-)
+const NFTOverview = () => {
+  // Placeholder for NFTOverview component
+  return (
+    <div className="p-4 bg-gray-100 rounded-lg">
+      <h3 className="text-xl font-bold mb-2">NFT Overview</h3>
+      <p>This is a placeholder for the NFT overview component.</p>
+    </div>
+  )
+}
 
-const GetStarted = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle className="text-2xl font-bold">Get Started with Blinkboard</CardTitle>
-      <CardDescription>Join the future of fast, secure, and easy transactions on Solana</CardDescription>
-    </CardHeader>
-    <CardContent className="space-y-4">
-      <p>Ready to experience the power of Blinkboard? Follow these simple steps:</p>
-      <ol className="list-decimal list-inside space-y-2">
-        <li>Create your Solana wallet</li>
-        <li>Fund your wallet with SOL</li>
-        <li>Connect your wallet to Blinkboard</li>
-        <li>Start creating Blinks!</li>
-      </ol>
-      <p className="text-sm text-muted-foreground mt-4">
-        Remember, Blinkboard is in its MVP stage. Your feedback and participation are crucial in shaping its future!
-      </p>
-      <Button size="lg" className="w-full mt-4">
-        Create Your Account
-        <ArrowRight className="ml-2 h-5 w-4" />
-      </Button>
-    </CardContent>
-  </Card>
-)
+const BlinkTypes = () => {
+  // Placeholder for BlinkTypes component
+  return (
+    <div className="p-4 bg-gray-100 rounded-lg">
+      <h3 className="text-xl font-bold mb-2">Blink Types</h3>
+      <p>This is a placeholder for the Blink types component.</p>
+    </div>
+  )
+}
+
+const SubscriptionPlans = () => {
+  // Placeholder for SubscriptionPlans component
+  return (
+    <div className="p-4 bg-gray-100 rounded-lg">
+      <h3 className="text-xl font-bold mb-2">Subscription Plans</h3>
+      <p>This is a placeholder for the subscription plans component.</p>
+    </div>
+  )
+}
+
+const CommunitySection = () => {
+  // Placeholder for CommunitySection component
+  return (
+    <div className="p-4 bg-gray-100 rounded-lg">
+      <h3 className="text-xl font-bold mb-2">Community Section</h3>
+      <p>This is a placeholder for the community section component.</p>
+    </div>
+  )
+}
+
+const APISection = () => {
+  // Placeholder for APISection component
+  return (
+    <div className="p-4 bg-gray-100 rounded-lg">
+      <h3 className="text-xl font-bold mb-2">API Section</h3>
+      <p>This is a placeholder for the API section component.</p>
+    </div>
+  )
+}
+
+const MintFeature = () => {
+  // Placeholder for MintFeature component
+  return (
+    <div className="p-4 bg-gray-100 rounded-lg">
+      <h3 className="text-xl font-bold mb-2">Mint Feature</h3>
+      <p>This is a placeholder for the mint feature component.</p>
+    </div>
+  )
+}
 
 export default function Blinkboard() {
   const [activeTab, setActiveTab] = useState("overview")
-  const [isLoading, setIsLoading] = useState(true)
-  const [theme, setTheme] = useState("light")
-  const router = useRouter()
+  const [showVideo, setShowVideo] = useState(false)
+  const [backgroundImage, setBackgroundImage] = useState("/placeholder.svg?height=1080&width=1920&text=Default+Background")
 
   const tabs = [
     { id: "overview", label: "Overview", icon: Info },
@@ -159,85 +105,128 @@ export default function Blinkboard() {
     { id: "get-started", label: "Get Started", icon: ArrowRight }
   ]
 
-  useEffect(() => {
-    // Simulating data loading
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 1500)
+  const interfaceImages = [
+    "/placeholder.svg?height=400&width=800&text=Blinkboard+Interface+1",
+    "/placeholder.svg?height=400&width=800&text=Blinkboard+Interface+2",
+    "/placeholder.svg?height=400&width=800&text=Blinkboard+Interface+3",
+  ]
 
-    // Check for user's preferred theme
-    const userPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    setTheme(userPrefersDark ? 'dark' : 'light')
+  const handlePlayVideo = useCallback(() => {
+    setShowVideo(true)
   }, [])
 
-  const handleOpenVideoPresentation = () => {
-    router.push('/ui/video-presentation')
-  }
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light')
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        >
-          <Zap className="w-12 h-12 text-primary" />
-        </motion.div>
-      </div>
-    )
+  const handleBackgroundChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setBackgroundImage(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   return (
-    <section className={`py-24 bg-gradient-to-b ${theme === 'light' ? 'from-background to-secondary/20' : 'from-gray-900 to-gray-800'}`}>
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex justify-end mb-4">
-          <Button variant="outline" size="icon" onClick={toggleTheme}>
-            {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem]" /> : <Sun className="h-[1.2rem] w-[1.2rem]" />}
-          </Button>
-        </div>
+    <section className="py-24 relative" style={{
+      backgroundImage: `url(${backgroundImage})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }}>
+      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+      <div className="container mx-auto px-4 max-w-7xl relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className={`text-4xl font-bold mb-4 ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>Experience Blinkboard MVP</h2>
-          <p className={`text-xl max-w-3xl mx-auto ${theme === 'light' ? 'text-muted-foreground' : 'text-gray-300'}`}>
+          <h2 className="text-4xl font-bold text-white mb-4">Experience Blinkboard</h2>
+          <p className="text-xl text-gray-200 max-w-3xl mx-auto">
             Lightning-fast transactions, powerful features, and an intuitive interface for Solana. Join us in shaping the future of blockchain interactions!
           </p>
         </motion.div>
 
-        <div className="mb-8">
-          <nav className={`flex flex-wrap justify-center gap-2 p-2 rounded-lg ${theme === 'light' ? 'bg-muted' : 'bg-gray-700'}`}>
-            {tabs.map((tab) => (
-              <Button
-                key={tab.id}
-                variant={activeTab === tab.id ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 ${theme === 'dark' && 'text-white hover:text-gray-200'}`}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </Button>
-            ))}
-          </nav>
-        </div>
+        <Card className="bg-white/10 backdrop-blur-md border-none shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-white">Welcome to Blinkboard</CardTitle>
+            <CardDescription className="text-gray-200">
+              Blinkboard is a revolutionary platform that simplifies blockchain interactions on the Solana network. 
+              Create, manage, and engage with various blockchain activities through our innovative Blink system. 
+              Whether you're a seasoned blockchain enthusiast or new to the space, Blinkboard provides the tools 
+              you need to participate in the decentralized future.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="mb-8">
+              <nav className="flex flex-wrap justify-center gap-2 bg-white/20 p-2 rounded-lg">
+                {tabs.map((tab) => (
+                  <Button
+                    key={tab.id}
+                    variant={activeTab === tab.id ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setActiveTab(tab.id)}
+                    className="flex items-center space-x-2 text-white"
+                  >
+                    <tab.icon className="w-4 h-4 text-[#FFE288]" />
+                    <span>{tab.label}</span>
+                  </Button>
+                ))}
+              </nav>
+            </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="mt-8"
-          >
-            {activeTab === "overview" && <Overview tabs={tabs} handleOpenVideoPresentation={handleOpenVideoPresentation} />}
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                <div className="mb-6">
+                  {showVideo ? (
+                    <VideoPresentation
+                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                      title="Blinkboard Overview"
+                    />
+                  ) : (
+                    <div className="relative aspect-video">
+                      <img
+                        src="/placeholder.svg?height=400&width=800&text=Blinkboard+Video+Thumbnail"
+                        alt="Blinkboard Video Thumbnail"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <Button
+                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                        onClick={handlePlayVideo}
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        How it Works
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <Carousel className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
+                  <CarouselContent>
+                    {interfaceImages.map((src, index) => (
+                      <CarouselItem key={index}>
+                        <img
+                          src={src}
+                          alt={`Blinkboard Interface ${index + 1}`}
+                          className="w-full rounded-lg shadow-lg"
+                        />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+                <div className="mt-6 space-y-4 text-white">
+                  <p>Blinkboard is currently in its MVP stage, and we're excited to have you on board as we continue to develop and improve our platform. Here's what you can explore in our tabs:</p>
+                  <ul className="space-y-2">
+                    {tabs.slice(1).map((tab) => (
+                      <li key={tab.id} className="flex items-center">
+                        <ChevronRight className="mr-2 h-4 w-4 text-[#FFE288]" />
+                        <strong>{tab.label}:</strong> <span className="ml-1">Explore {tab.label.toLowerCase()} features</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
             {activeTab === "demo" && <BlinkboardDemo />}
             {activeTab === "blink-types" && <BlinkTypes />}
             {activeTab === "nfts" && <NFTOverview />}
@@ -245,9 +234,48 @@ export default function Blinkboard() {
             {activeTab === "community" && <CommunitySection />}
             {activeTab === "api" && <APISection />}
             {activeTab === "mint" && <MintFeature />}
-            {activeTab === "get-started" && <GetStarted />}
-          </motion.div>
-        </AnimatePresence>
+            {activeTab === "get-started" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold">Get Started with Blinkboard</CardTitle>
+                  <CardDescription>Join the future of fast, secure, and easy transactions on Solana</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p>Ready to experience the power of Blinkboard? Follow these simple steps:</p>
+                  <ol className="list-decimal list-inside space-y-2">
+                    <li>Create your Solana wallet</li>
+                    <li>Fund your wallet with SOL</li>
+                    <li>Connect your wallet to Blinkboard</li>
+                    <li>Start creating Blinks!</li>
+                  </ol>
+                  <p className="text-sm text-muted-foreground mt-4">
+                    Remember, Blinkboard is in its MVP stage. Your feedback and participation are crucial in shaping its future!
+                  </p>
+                  <Button size="lg" className="w-full mt-4">
+                    Create Your Account
+                    <ArrowRight className="ml-2 h-5 w-4 text-[#FFE288]" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="background-image" className="text-white">Change Background:</Label>
+              <Input
+                id="background-image"
+                type="file"
+                accept="image/*"
+                onChange={handleBackgroundChange}
+                className="w-full max-w-xs text-white"
+              />
+            </div>
+            <Button variant="secondary">
+              Get Started
+              <ArrowRight className="ml-2 h-5 w-4 text-[#FFE288]" />
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </section>
   )

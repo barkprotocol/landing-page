@@ -12,20 +12,36 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import Link from 'next/link'
 
 export function About() {
   const [isHovered, setIsHovered] = useState(false)
-  const [activeFeature, setActiveFeature] = useState<number | null>(null)
 
   const features = [
-    { title: "Lightning Fast", description: "Built on Solana for blazing speed", details: "Experience transaction speeds of up to 65,000 per second with sub-second finality." },
-    { title: "Meme Powered", description: "Fueled by the internet's best humor", details: "Our Blink meme generator ensures a constant supply of fresh, trending memes." },
-    { title: "Community Driven", description: "Governed by meme enthusiasts", details: "Participate in DAO voting where the funniest meme proposals win!" },
-    { title: "DeFi Integration", description: "Earn yields with your memes", details: "Stake your MILTON tokens in our meme farms for hilarious returns." }
+    { 
+      title: "Meme Economy", 
+      description: "Create and trade meme-based assets", 
+      details: "Participate in a vibrant meme marketplace where creativity is rewarded with real economic value." 
+    },
+    { 
+      title: "Social Engagement", 
+      description: "Connect with meme enthusiasts globally", 
+      details: "Join meme creation challenges, vote on trending content, and build your reputation in the meme community." 
+    },
+    { 
+      title: "DeFi Integration", 
+      description: "Earn yields with your memes", 
+      details: "Stake your MILTON tokens in meme farms for rewards and participate in meme-backed lending protocols." 
+    },
+    { 
+      title: "Charitable Initiatives", 
+      description: "Meme for a cause", 
+      details: "Participate in meme-driven charitable campaigns and help make a real-world impact through humor." 
+    }
   ]
 
   return (
-    <section className="py-24 bg-gradient-to-b from-white to-gray-50">
+    <section className="py-24 bg-gradient-to-b from-background to-secondary/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -33,10 +49,10 @@ export function About() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            About Milton
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            The Meme Thunder of Solana
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Revolutionizing meme culture on the Solana blockchain
           </p>
         </motion.div>
@@ -66,7 +82,7 @@ export function About() {
                   transition={{ duration: 0.3 }}
                   className="absolute inset-0 bg-primary bg-opacity-75 rounded-lg flex items-center justify-center"
                 >
-                  <p className="text-white text-2xl font-bold">Meme Magic Awaits!</p>
+                  <p className="text-primary-foreground text-2xl font-bold">Meme Magic Awaits!</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -78,29 +94,31 @@ export function About() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="space-y-6"
           >
-            <h3 className="text-2xl font-bold text-gray-900">
-              The Meme Thunder of Solana
+            <h3 className="text-2xl font-bold text-foreground">
+              About Milton
             </h3>
-            <p className="text-lg text-gray-600">
-              Milton Token is not just another cryptocurrency; it's a revolution in the world of memes and blockchain technology. Built on the lightning-fast Solana network, Milton combines the power of decentralized finance with the viral nature of internet culture.
+            <p className="text-lg text-muted-foreground">
+              Milton Token (MILTON) is not just another meme coin; it's a revolution in the world of memes and blockchain technology. Built on the lightning-fast Solana network, Milton combines the power of decentralized finance with the viral nature of internet culture.
             </p>
-            <p className="text-lg text-gray-600">
-              Our mission is to create a vibrant ecosystem where creativity meets opportunity, and where meme enthusiasts can turn their passion into real value.
+            <p className="text-lg text-muted-foreground">
+              Our mission is to create a vibrant ecosystem where creativity meets opportunity, and where meme enthusiasts can turn their passion into real value while making a positive impact on the world.
             </p>
-            <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
               {features.map((feature, index) => (
                 <Card 
                   key={index} 
-                  className="bg-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  onClick={() => setActiveFeature(activeFeature === index ? null : index)}
+                  className="bg-card shadow-md hover:shadow-lg transition-all duration-300"
                 >
                   <CardContent className="p-4">
                     <h4 className="text-lg font-semibold text-primary mb-2 flex items-center justify-between">
                       {feature.title}
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-gray-400" />
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" className="p-0">
+                              <span className="sr-only">More info about {feature.title}</span>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </Button>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>{feature.details}</p>
@@ -108,28 +126,19 @@ export function About() {
                         </Tooltip>
                       </TooltipProvider>
                     </h4>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
-                    <AnimatePresence>
-                      {activeFeature === index && (
-                        <motion.p
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="text-xs text-gray-500 mt-2"
-                        >
-                          {feature.details}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
+                    <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
-            <Button className="bg-primary hover:bg-primary/90 text-white group transition-all duration-300 ease-in-out transform hover:scale-105">
-              Learn More 
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <div className="mt-8">
+              <Link href="/learn-more" passHref>
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground group transition-all duration-300 ease-in-out transform hover:scale-105">
+                  Explore Milton Ecosystem 
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </div>
