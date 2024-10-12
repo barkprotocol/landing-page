@@ -13,40 +13,46 @@ export function Features() {
 
   const features = [
     {
-      icon: 'ri-tornado-line',
-      title: "Meme Tornado",
-      description: "Harness the power of Milton's tornado legs to spin up viral meme campaigns and boost your token value.",
-      details: "Our AI-powered Meme Tornado algorithm analyzes trending topics and automatically generates hilarious memes to keep your MILTON tokens in the spotlight."
-    },
-    {
       icon: 'ri-flashlight-line',
-      title: "Lightning-Fast Transactions",
-      description: "Experience the speed of Solana with Milton. Blink, and you might miss it!",
-      details: "MILTON transactions are processed in milliseconds, allowing for real-time meme trading and instant gratification in the world of crypto humor."
-    },
-    {
-      icon: 'ri-coin-line',
-      title: "Meme-to-Earn",
-      description: "Create and share Milton memes to earn token rewards. The funnier, the better!",
-      details: "Our decentralized meme marketplace uses a unique algorithm to reward creators based on community engagement, virality, and overall meme quality."
-    },
-    {
-      icon: 'ri-emotion-laugh-line',
-      title: "NFT Meme Gallery",
-      description: "Collect and trade unique Milton-inspired meme NFTs in our exclusive gallery.",
-      details: "Each meme NFT is minted with provable rarity and comes with special perks in the MILTON ecosystem, including exclusive access to meme-creation tools and premium content."
-    },
-    {
-      icon: 'ri-line-chart-line',
-      title: "DeFi Integration",
-      description: "Stake your MILTON tokens in our meme-powered yield farms for hilarious returns.",
-      details: "Our innovative 'Laugh-Fi' protocol combines traditional DeFi principles with meme engagement metrics to determine yield rates, creating a truly unique and entertaining financial experience."
+      title: "Instant Blink Creation",
+      description: "Create and share Blinks in seconds for various blockchain activities.",
+      details: "Our intuitive interface allows you to generate Blinks for crowdfunding, token swaps, donations, and NFT sales with just a few clicks.",
+      useCase: "Perfect for project creators looking to quickly set up fundraising campaigns or artists wanting to launch NFT collections without complex setups."
     },
     {
       icon: 'ri-group-line',
-      title: "Community Governance",
-      description: "Participate in DAO voting with a twist - the most upvoted meme proposals win!",
-      details: "MILTON holders can submit meme-based proposals for ecosystem improvements, with voting power determined by both token holdings and meme creation history."
+      title: "Community-Driven Ecosystem",
+      description: "Engage with a vibrant community of Blink creators and supporters.",
+      details: "Blinkboard fosters a collaborative environment where users can discover, support, and participate in various blockchain initiatives.",
+      useCase: "Ideal for community managers looking to build engagement around their projects or individuals seeking to support causes they care about."
+    },
+    {
+      icon: 'ri-secure-payment-line',
+      title: "Secure Transactions",
+      description: "Enjoy peace of mind with our robust security measures for all Blink transactions.",
+      details: "Blinkboard leverages Solana's fast and secure blockchain to ensure all transactions are protected and transparent.",
+      useCase: "Essential for users who prioritize security in their blockchain interactions, from small donations to large token swaps."
+    },
+    {
+      icon: 'ri-pie-chart-line',
+      title: "Analytics Dashboard",
+      description: "Track the performance of your Blinks with detailed analytics.",
+      details: "Get insights into your Blinks' engagement, transaction volumes, and supporter demographics to optimize your campaigns.",
+      useCase: "Valuable for project managers and marketers who need data-driven insights to improve their blockchain initiatives."
+    },
+    {
+      icon: 'ri-wallet-3-line',
+      title: "Multi-Wallet Support",
+      description: "Connect and manage multiple wallets for seamless Blink interactions.",
+      details: "Blinkboard supports various Solana wallets, allowing you to easily switch between accounts or manage different projects.",
+      useCase: "Great for power users managing multiple projects or for teams collaborating on various blockchain initiatives."
+    },
+    {
+      icon: 'ri-global-line',
+      title: "Cross-Platform Compatibility",
+      description: "Create and share Blinks across different platforms and social media.",
+      details: "Blinkboard generates shareable links and embeddable widgets, making it easy to spread your Blinks across the web.",
+      useCase: "Perfect for content creators and marketers looking to maximize the reach of their blockchain projects across various online channels."
     }
   ]
 
@@ -61,14 +67,19 @@ export function Features() {
   return (
     <section id="features" className="py-24 bg-gradient-to-b from-white to-gray-100 w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.h2 
-          className="text-4xl font-bold text-center text-gray-900 mb-16"
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="text-center mb-16"
         >
-          Milton's Meme-Powered Features
-        </motion.h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Blinkboard's Powerful Features
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Discover how Blinkboard simplifies blockchain interactions, making it easy for anyone to create, manage, and engage with various blockchain activities through our innovative Blink system.
+          </p>
+        </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <motion.div
@@ -81,7 +92,7 @@ export function Features() {
               onClick={() => handleFeatureClick(index)}
             >
               <FeatureCard
-                icon={<Icon icon={feature.icon} className="w-8 h-8 text-primary" />}
+                icon={<Icon icon={feature.icon} className="w-8 h-8 text-primary" aria-hidden="true" />}
                 title={feature.title}
                 description={feature.description}
                 isHovered={hoveredIndex === index}
@@ -105,6 +116,8 @@ export function Features() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 mb-4">{features[selectedFeature].details}</p>
+                  <h3 className="text-lg font-semibold mb-2">Use Case:</h3>
+                  <p className="text-gray-700 mb-4">{features[selectedFeature].useCase}</p>
                   <Button onClick={() => handleFeatureClick(selectedFeature)} variant="outline">
                     Close
                   </Button>

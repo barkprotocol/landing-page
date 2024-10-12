@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, Zap, Users, Heart, Globe, Rocket, Flame } from 'lucide-react'
+import { ArrowRight, Zap, Users, Heart, Globe, Rocket, Flame, FileText } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -22,10 +22,10 @@ export function Hero() {
   }
 
   const cards = [
-    { title: "Fast Transactions", icon: Zap, description: "Experience lightning-fast transactions on the Solana blockchain." },
-    { title: "Community Driven", icon: Users, description: "Join a vibrant community of meme enthusiasts and Solana lovers." },
-    { title: "Disaster Relief", icon: Heart, description: "Support global disaster relief efforts through MILTON transactions." },
-    { title: "Real-World Impact", icon: Globe, description: "Use MILTON for charitable donations and social good initiatives." }
+    { icon: Zap, title: "Fast Transactions", description: "Experience lightning-fast transactions on the Solana blockchain.", color: "text-yellow-400" },
+    { icon: Users, title: "Community Driven", description: "Join a vibrant community of meme enthusiasts and Solana lovers.", color: "text-yellow-400" },
+    { icon: Heart, title: "Disaster Relief", description: "Support global disaster relief efforts through MILTON transactions.", color: "text-yellow-400" },
+    { icon: Globe, title: "Real-World Impact", description: "Use MILTON for charitable donations and social good initiatives.", color: "text-yellow-400" }
   ]
 
   useEffect(() => {
@@ -36,13 +36,13 @@ export function Hero() {
 
       if (daysSinceLaunch < 0) {
         setBadgeText(`Launching in ${Math.abs(daysSinceLaunch)} days`)
-        setBadgeIcon(<Rocket className="w-4 h-4 mr-1" />)
+        setBadgeIcon(<Rocket className="w-4 h-4 mr-1" aria-hidden="true" />)
       } else if (daysSinceLaunch === 0) {
         setBadgeText('Launching Today!')
-        setBadgeIcon(<Rocket className="w-4 h-4 mr-1" />)
+        setBadgeIcon(<Rocket className="w-4 h-4 mr-1" aria-hidden="true" />)
       } else if (daysSinceLaunch <= 30) {
         setBadgeText('New Launch')
-        setBadgeIcon(<Flame className="w-4 h-4 mr-1" />)
+        setBadgeIcon(<Flame className="w-4 h-4 mr-1" aria-hidden="true" />)
       } else {
         setBadgeText('') // No badge after 30 days
         setBadgeIcon(null)
@@ -55,15 +55,16 @@ export function Hero() {
     return () => clearInterval(timer)
   }, [])
 
-  const handleCreateBlink = () => {
-    router.push('/blinks')
+  const handleWhitepaperClick = () => {
+    // Replace with actual whitepaper URL
+    window.open('/whitepaper.pdf', '_blank', 'noopener,noreferrer')
   }
 
   return (
     <section className="relative py-20 text-white overflow-hidden">
       <Image
         src="https://ucarecdn.com/4de9a21e-eea8-4546-bab1-c241ebe242cc/hurricane.jpeg"
-        alt="Background tornado"
+        alt="Background image of a tornado symbolizing the power of Milton"
         fill
         style={{ objectFit: 'cover' }}
         quality={100}
@@ -93,29 +94,29 @@ export function Hero() {
                 </motion.div>
               )}
             </AnimatePresence>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl mb-4">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl mb-4 text-shadow-sm">
               Welcome to Milton
-              <span className="block text-primary mt-2">The Storm of Solana</span>
+              <span className="block text-primary mt-2 text-shadow-sm">The Storm of Solana</span>
             </h1>
             <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl">
               Brace Yourself for the Fastest and Most Impactful Token on the Blockchain!
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/dashboard" passHref legacyBehavior>
+              <Link href="/blinkboard" passHref legacyBehavior>
                 <Button asChild className="w-full sm:w-48 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
                   <a>
-                    Go Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    Blinkboard
+                    <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
                   </a>
                 </Button>
               </Link>
               <Button 
                 variant="outline" 
                 className="w-full sm:w-48 bg-transparent hover:bg-white/10 text-white font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center border border-white transition-all duration-300 shadow-lg hover:shadow-xl"
-                onClick={handleCreateBlink}
+                onClick={handleWhitepaperClick}
               >
-                <Zap className="mr-2 h-5 w-5" />
-                Create a Blink
+                <FileText className="mr-2 h-5 w-5" aria-hidden="true" />
+                Whitepaper
               </Button>
             </div>
           </div>
@@ -142,14 +143,14 @@ export function Hero() {
                 transition={{ duration: 0.5 }}
               >
                 <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="text-xl font-semibold flex items-center">
-                      <card.icon className="mr-2 h-6 w-6 text-primary" />
-                      {card.title}
+                  <CardHeader className="pb-2 text-center">
+                    <CardTitle className="text-xl font-semibold flex flex-col items-center">
+                      <card.icon className={`mb-2 h-8 w-8 ${card.color}`} aria-hidden="true" />
+                      <span className="text-white">{card.title}</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-300">{card.description}</p>
+                  <CardContent className="text-center">
+                    <p className="text-gray-300 text-sm">{card.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>

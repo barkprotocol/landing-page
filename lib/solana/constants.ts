@@ -15,8 +15,8 @@ export const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqX
 // Metadata Program ID (for NFTs)
 export const METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
-// Meteora DEX Program ID (for Meteora markets) - Ensure this is correct or replace with actual value
-export const METEORA_DEX_PROGRAM_ID = new PublicKey('')
+// Meteora DEX Program ID (for Meteora markets)
+export const METEORA_DEX_PROGRAM_ID = new PublicKey('M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K')
 
 // Raydium Liquidity Pool Program ID
 export const RAYDIUM_LIQUIDITY_POOL_PROGRAM_ID = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8')
@@ -34,7 +34,7 @@ export const USDT_MINT_ADDRESS = new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11
 export const SOL_MINT_ADDRESS = new PublicKey('So11111111111111111111111111111111111111112')
 
 // Wrapped SOL mint address
-export const WRAPPED_SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
+export const WRAPPED_SOL_MINT = SOL_MINT_ADDRESS
 
 // Milton Treasury Wallet
 export const MILTON_TREASURY_WALLET = new PublicKey(process.env.NEXT_PUBLIC_MILTON_TREASURY_WALLET!)
@@ -128,8 +128,7 @@ export function getProgramName(pubkey: PublicKey): string {
 
 // Function to check if a token is supported by Milton
 export function isMiltonSupportedToken(symbol: string): boolean {
-  const supportedTokens = ['MILTON', 'USDC', 'USDT', 'SOL', 'WSOL']
-  return supportedTokens.includes(symbol.toUpperCase())
+  return symbol.toUpperCase() in TOKEN_INFO
 }
 
 // Function to get Milton staking pool address

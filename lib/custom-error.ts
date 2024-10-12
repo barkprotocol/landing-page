@@ -29,11 +29,12 @@ export enum ErrorType {
   NFTTransferFailed = 'NFTTransferFailed',
   InvalidCredentials = 'InvalidCredentials',
   UserAlreadyExists = 'UserAlreadyExists',
-  InvalidAction = 'InvalidAction', // Added this line
+  InvalidAction = 'InvalidAction',
+  ConfigurationError = 'ConfigurationError',
 }
 
 export class CustomError extends Error {
-  constructor(public type: ErrorType, message: string) {
+  constructor(public type: ErrorType, message: string, public originalError?: unknown) {
     super(message);
     this.name = 'CustomError';
   }
@@ -76,6 +77,7 @@ export class CustomError extends Error {
       case ErrorType.NFTNotFound:
         return 404; // Not Found
       case ErrorType.SolanaError:
+      case ErrorType.ConfigurationError:
         return 500; // Internal Server Error
       case ErrorType.PaymentError:
         return 402; // Payment Required

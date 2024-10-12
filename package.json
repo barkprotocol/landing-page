@@ -1,6 +1,6 @@
 {
   "name": "milton-webapp",
-  "description": "The Storm of Solana: Brace Yourself for the Fastest, Funniest, and Most Chaotic Token on the Blockchain!",
+  "description": "The Storm of Solana: Brace Yourself for the Fastest, Innovative, and Most Chaotic Token on the Blockchain!",
   "version": "0.1.1",
   "private": true,
   "scripts": {
@@ -58,6 +58,8 @@
     "@solana/wallet-adapter-react-ui": "^0.9.35",
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.95.3",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.5.1",
     "@tailwindcss/typography": "^0.5.15",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.7",
@@ -78,8 +80,10 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
+    "embla-carousel-react": "^8.3.0",
     "framer-motion": "^11.11.7",
     "install": "^0.13.0",
+    "ipfs-http-client": "^60.0.1",
     "jose": "^5.9.3",
     "js-base64": "^3.7.7",
     "jsonwebtoken": "^9.0.2",
@@ -90,6 +94,7 @@
     "npm": "^10.9.0",
     "pg": "^8.13.0",
     "pino": "^9.4.0",
+    "prettier": "^3.3.3",
     "qrcode.react": "^4.0.1",
     "react": "^19.0.0-rc-09111202-20241011",
     "react-chartjs-2": "^5.2.0",
@@ -97,6 +102,8 @@
     "react-hook-form": "^7.53.0",
     "react-hot-toast": "^2.4.1",
     "react-intersection-observer": "^9.13.1",
+    "react-slick": "^0.30.2",
+    "react-toastify": "^10.0.5",
     "recharts": "^2.12.7",
     "server-only": "^0.0.1",
     "sonner": "^1.5.0",
@@ -106,6 +113,8 @@
     "tailwindcss-react-aria-components": "1.1.5",
     "tweetnacl": "^1.0.3",
     "typescript": "^5.6.3",
+    "uuid": "^10.0.0",
+    "winston": "^3.15.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

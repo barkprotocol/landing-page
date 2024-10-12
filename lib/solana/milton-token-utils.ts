@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction, SystemProgram, sendAndConfirmTransaction, Keypair } from '@solana/web3.js'
+import { Connection, PublicKey, Transaction, sendAndConfirmTransaction, Keypair } from '@solana/web3.js'
 import { 
   TOKEN_PROGRAM_ID, 
   ASSOCIATED_TOKEN_PROGRAM_ID, 
@@ -20,9 +20,6 @@ const MILTON_MINT_ADDRESS = new PublicKey(process.env.NEXT_PUBLIC_MILTON_MINT_AD
 
 /**
  * Get the balance of MILTON tokens for a given wallet address
- * @param connection Solana connection
- * @param ownerAddress The owner's wallet address
- * @returns The MILTON token balance as a number
  */
 export async function getMiltonBalance(
   connection: Connection,
@@ -41,10 +38,6 @@ export async function getMiltonBalance(
 
 /**
  * Create a MILTON associated token account if it doesn't exist
- * @param connection Solana connection
- * @param payer The account that will pay for the transaction
- * @param ownerAddress The owner's wallet address
- * @returns The associated token address
  */
 export async function createMiltonAccountIfNotExist(
   connection: Connection,
@@ -54,7 +47,6 @@ export async function createMiltonAccountIfNotExist(
   try {
     const associatedTokenAddress = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, ownerAddress)
     
-    // Check if the account already exists
     const accountInfo = await connection.getAccountInfo(associatedTokenAddress)
     
     if (!accountInfo) {
@@ -79,12 +71,6 @@ export async function createMiltonAccountIfNotExist(
 
 /**
  * Transfer MILTON tokens from one account to another
- * @param connection Solana connection
- * @param payer The account that will pay for the transaction
- * @param fromAddress The sender's wallet address
- * @param toAddress The recipient's wallet address
- * @param amount The amount of MILTON tokens to transfer
- * @returns The transaction signature
  */
 export async function transferMiltonTokens(
   connection: Connection,
@@ -97,7 +83,6 @@ export async function transferMiltonTokens(
     const fromTokenAccount = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, fromAddress)
     const toTokenAccount = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, toAddress)
     
-    // Create the recipient's associated token account if it doesn't exist
     await createMiltonAccountIfNotExist(connection, payer, toAddress)
     
     const tokenAmount = BigInt(Math.round(amount * Math.pow(10, MILTON_DECIMALS)))
@@ -113,8 +98,7 @@ export async function transferMiltonTokens(
       )
     )
     
-    const signature = await sendAndConfirmTransaction(connection, transaction, [payer])
-    return signature
+    return await sendAndConfirmTransaction(connection, transaction, [payer])
   } catch (error) {
     logger.error('Error transferring MILTON tokens:', error)
     throw new CustomError(ErrorType.TransactionFailed, 'Failed to transfer MILTON tokens')
@@ -123,9 +107,6 @@ export async function transferMiltonTokens(
 
 /**
  * Check if a MILTON associated token account exists
- * @param connection Solana connection
- * @param ownerAddress The owner's wallet address
- * @returns True if the MILTON associated token account exists, false otherwise
  */
 export async function doesMiltonAccountExist(
   connection: Connection,
@@ -143,8 +124,6 @@ export async function doesMiltonAccountExist(
 
 /**
  * Get the total supply of MILTON tokens
- * @param connection Solana connection
- * @returns The total supply of MILTON tokens
  */
 export async function getMiltonTotalSupply(connection: Connection): Promise<number> {
   try {
@@ -158,8 +137,6 @@ export async function getMiltonTotalSupply(connection: Connection): Promise<numb
 
 /**
  * Format MILTON token amount to display with proper decimals
- * @param amount Raw token amount
- * @returns Formatted MILTON token amount as a string
  */
 export function formatMiltonAmount(amount: number): string {
   return amount.toFixed(MILTON_DECIMALS)
@@ -167,8 +144,6 @@ export function formatMiltonAmount(amount: number): string {
 
 /**
  * Parse MILTON token amount from user input
- * @param input User input string
- * @returns Parsed MILTON token amount as a number
  */
 export function parseMiltonAmount(input: string): number {
   const parsed = parseFloat(input)
@@ -180,8 +155,6 @@ export function parseMiltonAmount(input: string): number {
 
 /**
  * Get the current price of MILTON tokens in USD
- * @param connection Solana connection
- * @returns The current price of MILTON tokens in USD
  */
 export async function getMiltonPrice(connection: Connection): Promise<number> {
   try {
@@ -196,9 +169,6 @@ export async function getMiltonPrice(connection: Connection): Promise<number> {
 
 /**
  * Calculate the USD value of a given amount of MILTON tokens
- * @param connection Solana connection
- * @param miltonAmount The amount of MILTON tokens
- * @returns The USD value of the given MILTON tokens
  */
 export async function calculateMiltonUsdValue(connection: Connection, miltonAmount: number): Promise<number> {
   const price = await getMiltonPrice(connection);
@@ -207,10 +177,6 @@ export async function calculateMiltonUsdValue(connection: Connection, miltonAmou
 
 /**
  * Get the transaction history for a MILTON token account
- * @param connection Solana connection
- * @param ownerAddress The owner's wallet address
- * @param limit The maximum number of transactions to fetch
- * @returns An array of transaction signatures
  */
 export async function getMiltonTransactionHistory(
   connection: Connection,
@@ -229,11 +195,6 @@ export async function getMiltonTransactionHistory(
 
 /**
  * Burn MILTON tokens
- * @param connection Solana connection
- * @param payer The account that will pay for the transaction
- * @param ownerAddress The owner's wallet address
- * @param amount The amount of MILTON tokens to burn
- * @returns The transaction signature
  */
 export async function burnMiltonTokens(
   connection: Connection,
@@ -255,8 +216,7 @@ export async function burnMiltonTokens(
       )
     )
 
-    const signature = await sendAndConfirmTransaction(connection, transaction, [payer])
-    return signature
+    return await sendAndConfirmTransaction(connection, transaction, [payer])
   } catch (error) {
     logger.error('Error burning MILTON tokens:', error)
     throw new CustomError(ErrorType.TransactionFailed, 'Failed to burn MILTON tokens')

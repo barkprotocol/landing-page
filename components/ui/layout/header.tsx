@@ -1,17 +1,15 @@
-'use client'
-
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Menu, X, FileText } from 'lucide-react'
+import { Menu, X, Rocket } from 'lucide-react'
 import { WalletButton } from '@/components/ui/wallet-button'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const navItems = [
   { href: '#features', label: 'Features' },
-  { href: './pages/services', label: 'Services' },
+  { href: './pages/solutions', label: 'Solutions' },
   { href: '#tokenomics', label: 'Tokenomics' },
   { href: '#faq', label: 'FAQ' },
   { href: '#community', label: 'Community' },
@@ -47,8 +45,8 @@ export function Header() {
             <Image
               src="https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg"
               alt="Milton Logo"
-              width={52}
-              height={52}
+              width={54}
+              height={54}
               className="w-12 h-12"
               priority
             />
@@ -72,8 +70,8 @@ export function Header() {
           <div className="hidden md:flex space-x-4 items-center">
             <WalletButton />
             <Button variant="outline" className="text-primary hover:bg-primary/10">
-              <FileText className="mr-2 h-4 w-4" />
-              Whitepaper
+              <Rocket className="mr-2 h-4 w-4" />  {/* Changed icon */}
+              Launch App  {/* Changed text */}
             </Button>
           </div>
           <button
@@ -112,8 +110,8 @@ export function Header() {
               ))}
               <WalletButton />
               <Button variant="outline" className="text-primary hover:bg-primary/10 w-full">
-                <FileText className="mr-2 h-4 w-4" />
-                Whitepaper
+                <Rocket className="mr-2 h-4 w-4" />  {/* Changed icon */}
+                Launch App  {/* Changed text */}
               </Button>
             </nav>
           </motion.div>

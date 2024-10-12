@@ -1,455 +1,254 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { Connection, PublicKey } from '@solana/web3.js'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Sidebar } from "@/components/ui/layout/sidebar"
-import { Header } from "@/components/ui/layout/header"
-import { fetchBalance, createBlink, fetchBlinks } from "@/lib/solana/solana-utils"
-import { WalletButton } from "@/components/ui/wallet-button"
-import { Loader2, Plus, RefreshCcw, ArrowUpDown, AlertCircle, Zap, Gift, Image as ImageIcon, Heart, Send, FileText, Users } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Label } from "@/components/ui/label"
+import { ArrowRight, Zap, Coins, BarChart2, Image as ImageIcon, Info, RefreshCcw, Gift, CreditCard, Repeat, FileText, Heart, Shuffle, Vote, Printer, Lock, Wand2, Eye, Check, DollarSign, Bell, Shield, MessageSquare, Trash, Download, Users, Code, ChevronRight, Play, Moon, Sun } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Progress } from "@/components/ui/progress"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import Slider from "react-slick"
+import "slick-carousel/slick/slick.css"
+import "slick-carousel/slick/slick-theme.css"
 
-const SOLANA_RPC_URL = 'https://api.devnet.solana.com'
+// Import sub-components
+import BlinkboardDemo from './components/blinkboard-demo'
+import NFTOverview from './components/nft-overview'
+import BlinkTypes from './components/blink-types'
+import SubscriptionPlans from './components/subscription-plans'
+import CommunitySection from './components/community-section'
+import APISection from './components/api'
+import MintFeature from './components/mint-feature'
 
-type BlinkType = 'payment' | 'gift' | 'nft' | 'donation' | 'transaction' | 'memo' | 'crowdfunding' | 'subscription'
-
-interface Blink {
-  id: string
-  type: BlinkType
-  name: string
-  amount: number
-  currency: string
-  status: 'pending' | 'completed' | 'failed'
-  date: string
-}
-
-interface PricingTier {
-  name: string
-  price: number
-  features: string[]
-}
-
-const pricingTiers: PricingTier[] = [
-  {
-    name: 'Basic',
-    price: 9.99,
-    features: ['Create up to 10 Blinks/month', 'Basic analytics', 'Email support']
-  },
-  {
-    name: 'Pro',
-    price: 19.99,
-    features: ['Create unlimited Blinks', 'Advanced analytics', 'Priority support', 'Custom Blink types']
-  },
-  {
-    name: 'Enterprise',
-    price: 49.99,
-    features: ['All Pro features', 'Dedicated account manager', 'API access', 'Custom integrations']
-  }
+const demoApplications = [
+  { name: "Instant Payments", image: "/placeholder.svg?height=300&width=400", description: "Experience lightning-fast Solana transactions" },
+  { name: "NFT Marketplace", image: "/placeholder.svg?height=300&width=400", description: "Create, buy, and sell unique digital assets" },
+  { name: "DeFi Dashboard", image: "/placeholder.svg?height=300&width=400", description: "Manage your decentralized finance portfolio" },
+  { name: "DAO Governance", image: "/placeholder.svg?height=300&width=400", description: "Participate in decentralized decision-making" },
 ]
 
-export default function Blinkboard() {
-  const router = useRouter()
-  const wallet = useWallet()
-  const { publicKey } = wallet
-  const { toast } = useToast()
-  const [blinks, setBlinks] = useState<Blink[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [balance, setBalance] = useState<number | null>(null)
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Blink; direction: 'asc' | 'desc' } | null>(null)
-  const [showNewBlinkDialog, setShowNewBlinkDialog] = useState(false)
-  const [selectedTab, setSelectedTab] = useState('all')
-  const [newBlinkType, setNewBlinkType] = useState<BlinkType | ''>('')
-  const [newBlinkName, setNewBlinkName] = useState('')
-  const [newBlinkAmount, setNewBlinkAmount] = useState('')
-  const [selectedPricingTier, setSelectedPricingTier] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (publicKey) {
-      fetchBalanceAndBlinks()
-    }
-  }, [publicKey])
-
-  const fetchBalanceAndBlinks = async () => {
-    if (!publicKey) return
-
-    setIsLoading(true)
-    try {
-      const connection = new Connection(SOLANA_RPC_URL, 'confirmed')
-      const [fetchedBalance, fetchedBlinks] = await Promise.all([
-        fetchBalance(connection, publicKey),
-        fetchBlinks(connection, publicKey)
-      ])
-      setBalance(fetchedBalance)
-      setBlinks(fetchedBlinks)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-      toast({
-        title: "Error fetching data",
-        description: "Unable to fetch your current balance and Blinks. Please try again later.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
+const DemoCarousel = () => {
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 5000,
   }
-
-  const handleCreateNewBlink = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!publicKey || !newBlinkType) return
-
-    setIsLoading(true)
-    try {
-      const connection = new Connection(SOLANA_RPC_URL, 'confirmed')
-      const newBlink = await createBlink(connection, publicKey, newBlinkType, newBlinkName, parseFloat(newBlinkAmount))
-      setBlinks([newBlink, ...blinks])
-      toast({
-        title: "Blink Created",
-        description: `Your new ${newBlinkType} Blink has been created successfully.`,
-      })
-      setShowNewBlinkDialog(false)
-      setNewBlinkType('')
-      setNewBlinkName('')
-      setNewBlinkAmount('')
-    } catch (error) {
-      console.error('Error creating Blink:', error)
-      toast({
-        title: "Error Creating Blink",
-        description: "Unable to create a new Blink. Please try again later.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleRefresh = () => {
-    fetchBalanceAndBlinks()
-  }
-
-  const sortBlinks = (key: keyof Blink) => {
-    let direction: 'asc' | 'desc' = 'asc'
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
-    setSortConfig({ key, direction })
-
-    const sortedBlinks = [...blinks].sort((a, b) => {
-      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1
-      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1
-      return 0
-    })
-
-    setBlinks(sortedBlinks)
-  }
-
-  const filteredBlinks = useMemo(() => {
-    if (selectedTab === 'all') return blinks
-    return blinks.filter(blink => blink.type === selectedTab)
-  }, [blinks, selectedTab])
-
-  const renderBlinkIcon = (type: BlinkType) => {
-    switch (type) {
-      case 'payment': return <Send className="h-4 w-4" />
-      case 'gift': return <Gift className="h-4 w-4" />
-      case 'nft': return <ImageIcon className="h-4 w-4" />
-      case 'donation': return <Heart className="h-4 w-4" />
-      case 'transaction': return <Zap className="h-4 w-4" />
-      case 'memo': return <FileText className="h-4 w-4" />
-      case 'crowdfunding': return <Users className="h-4 w-4" />
-      case 'subscription': return <RefreshCcw className="h-4 w-4" />
-      default: return <Zap className="h-4 w-4" />
-    }
-  }
-
-  const handleUpgrade = (tierName: string) => {
-    setSelectedPricingTier(tierName)
-    toast({
-      title: "Upgrade Initiated",
-      description: `You've selected the ${tierName} plan. Please complete the payment process.`,
-    })
-    // Here you would typically redirect to a payment page or open a payment dialog
-  }
-
-  const chartData = useMemo(() => {
-    const data: { [key: string]: number } = {}
-    blinks.forEach(blink => {
-      if (data[blink.type]) {
-        data[blink.type] += blink.amount
-      } else {
-        data[blink.type] = blink.amount
-      }
-    })
-    return Object.entries(data).map(([name, value]) => ({ name, value }))
-  }, [blinks])
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
-          <div className="container mx-auto px-6 py-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-6">Blinkboard</h1>
+    <Slider {...settings}>
+      {demoApplications.map((app, index) => (
+        <div key={index} className="px-2">
+          <Card>
+            <CardContent className="p-6">
+              <Image src={app.image} alt={app.name} width={400} height={300} className="rounded-lg mb-4" />
+              <h3 className="text-xl font-semibold mb-2">{app.name}</h3>
+              <p className="text-muted-foreground">{app.description}</p>
+            </CardContent>
+          </Card>
+        </div>
+      ))}
+    </Slider>
+  )
+}
 
-              {!publicKey && (
-                <Alert className="mb-6">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Wallet not connected</AlertTitle>
-                  <AlertDescription>
-                    Please connect your wallet to view your Blinkboard.
-                  </AlertDescription>
-                  <WalletButton className="mt-4" />
-                </Alert>
-              )}
-
-              <AnimatePresence>
-                {publicKey && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Balance</CardTitle>
-                          <CardDescription>Your current SOL balance</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-2xl font-bold">{balance !== null ? `${balance.toFixed(4)} SOL` : 'Loading...'}</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Total Blinks</CardTitle>
-                          <CardDescription>Number of Blinks created</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-2xl font-bold">{blinks.length}</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Active Plan</CardTitle>
-                          <CardDescription>Your current subscription</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-2xl font-bold">{selectedPricingTier || 'Basic'}</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Actions</CardTitle>
-                          <CardDescription>Quick actions for your Blinks</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <Button onClick={() => setShowNewBlinkDialog(true)} className="w-full mb-2">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create New Blink
-                          </Button>
-                          <Button onClick={handleRefresh} variant="outline" className="w-full" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
-                            Refresh Data
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <Card className="mb-8">
-                      <CardHeader>
-                        <CardTitle>Blink Activity</CardTitle>
-                        <CardDescription>Your recent Blink transactions and activities</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Tabs defaultValue="all" onValueChange={setSelectedTab}>
-                          <TabsList>
-                            <TabsTrigger value="all">All</TabsTrigger>
-                            <TabsTrigger value="payment">Payments</TabsTrigger>
-                            <TabsTrigger value="nft">NFTs</TabsTrigger>
-                            <TabsTrigger value="subscription">Subscriptions</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="all">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Type</TableHead>
-                                  <TableHead className="cursor-pointer" onClick={() => sortBlinks('name')}>
-                                    Name {sortConfig?.key === 'name' && <ArrowUpDown className="h-4 w-4 inline" />}
-                                  </TableHead>
-                                  <TableHead className="cursor-pointer" onClick={() => sortBlinks('amount')}>
-                                    Amount {sortConfig?.key === 'amount' && <ArrowUpDown className="h-4 w-4 inline" />}
-                                  </TableHead>
-                                  <TableHead>Currency</TableHead>
-                                  <TableHead>Status</TableHead>
-                                  <TableHead className="cursor-pointer" onClick={() => sortBlinks('date')}>
-                                    Date {sortConfig?.key === 'date' && <ArrowUpDown className="h-4 w-4 inline" />}
-                                  </TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {filteredBlinks.map((blink) => (
-                                  <TableRow key={blink.id}>
-                                    <TableCell>{renderBlinkIcon(blink.type)}</TableCell>
-                                    <TableCell>{blink.name}</TableCell>
-                                    <TableCell>{blink.amount}</TableCell>
-                                    <TableCell>{blink.currency}</TableCell>
-                                    <TableCell>
-                                      <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                                        ${blink.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                          blink.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                          
-                                          'bg-red-100 text-red-800'}`}>
-                                        {blink.status}
-                                      </span>
-                                    </TableCell>
-                                    <TableCell>{blink.date}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TabsContent>
-                        </Tabs>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="mb-8">
-                      <CardHeader>
-                        <CardTitle>Blink Analytics</CardTitle>
-                        <CardDescription>Overview of your Blink activity by type</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#8884d8" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Upgrade Your Plan</CardTitle>
-                        <CardDescription>Choose the plan that best fits your needs</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid gap-6 md:grid-cols-3">
-                          {pricingTiers.map((tier) => (
-                            <Card key={tier.name}>
-                              <CardHeader>
-                                <CardTitle>{tier.name}</CardTitle>
-                                <CardDescription>${tier.price}/month</CardDescription>
-                              </CardHeader>
-                              <CardContent>
-                                <ul className="list-disc list-inside space-y-2">
-                                  {tier.features.map((feature, index) => (
-                                    <li key={index}>{feature}</li>
-                                  ))}
-                                </ul>
-                              </CardContent>
-                              <CardFooter>
-                                <Button onClick={() => handleUpgrade(tier.name)} className="w-full">
-                                  Upgrade to {tier.name}
-                                </Button>
-                              </CardFooter>
-                            </Card>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          </div>
-        </main>
-      </div>
-
-      <Dialog open={showNewBlinkDialog} onOpenChange={setShowNewBlinkDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Blink</DialogTitle>
-            <DialogDescription>
-              Fill in the details for your new Blink.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreateNewBlink}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="blink-type" className="text-right">
-                  Blink Type
-                </Label>
-                <Select onValueChange={(value) => setNewBlinkType(value as BlinkType)} required>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a Blink type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="payment">Payment</SelectItem>
-                    <SelectItem value="gift">Gift</SelectItem>
-                    <SelectItem value="nft">NFT</SelectItem>
-                    <SelectItem value="donation">Donation</SelectItem>
-                    <SelectItem value="subscription">Subscription</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  value={newBlinkName}
-                  onChange={(e) => setNewBlinkName(e.target.value)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="amount" className="text-right">
-                  Amount
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={newBlinkAmount}
-                  onChange={(e) => setNewBlinkAmount(e.target.value)}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowNewBlinkDialog(false)}>Cancel</Button>
-              <Button type="submit">Create Blink</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+const VideoPresentation = () => {
+  return (
+    <div className="aspect-video">
+      <iframe
+        width="100%"
+        height="100%"
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+        title="Blinkboard Presentation"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      ></iframe>
     </div>
+  )
+}
+
+const Overview = ({ tabs, handleOpenVideoPresentation }) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-2xl font-bold">Welcome to Blinkboard MVP</CardTitle>
+      <CardDescription>Explore our features and help shape the future of blockchain interactions</CardDescription>
+    </CardHeader>
+    <CardContent className="p-6">
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold mb-4">Featured Demo Applications</h3>
+        <DemoCarousel />
+      </div>
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold mb-4">Blinkboard Presentation</h3>
+        <VideoPresentation />
+      </div>
+      <div className="flex justify-center mt-6">
+        <Button onClick={handleOpenVideoPresentation} size="lg">
+          <Play className="mr-2 h-4 w-4" /> Open Full Presentation
+        </Button>
+      </div>
+      <div className="mt-8 space-y-4">
+        <p>Blinkboard is revolutionizing blockchain interactions. Here's what you can explore in our MVP:</p>
+        <ul className="space-y-2">
+          {tabs.slice(1).map((tab) => (
+            <li key={tab.id} className="flex items-center">
+              <ChevronRight className="mr-2 h-4 w-4 text-primary" />
+              <strong>{tab.label}:</strong> <span className="ml-1">Explore {tab.label.toLowerCase()} features</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </CardContent>
+  </Card>
+)
+
+const GetStarted = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-2xl font-bold">Get Started with Blinkboard</CardTitle>
+      <CardDescription>Join the future of fast, secure, and easy transactions on Solana</CardDescription>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <p>Ready to experience the power of Blinkboard? Follow these simple steps:</p>
+      <ol className="list-decimal list-inside space-y-2">
+        <li>Create your Solana wallet</li>
+        <li>Fund your wallet with SOL</li>
+        <li>Connect your wallet to Blinkboard</li>
+        <li>Start creating Blinks!</li>
+      </ol>
+      <p className="text-sm text-muted-foreground mt-4">
+        Remember, Blinkboard is in its MVP stage. Your feedback and participation are crucial in shaping its future!
+      </p>
+      <Button size="lg" className="w-full mt-4">
+        Create Your Account
+        <ArrowRight className="ml-2 h-5 w-4" />
+      </Button>
+    </CardContent>
+  </Card>
+)
+
+export default function Blinkboard() {
+  const [activeTab, setActiveTab] = useState("overview")
+  const [isLoading, setIsLoading] = useState(true)
+  const [theme, setTheme] = useState("light")
+  const router = useRouter()
+
+  const tabs = [
+    { id: "overview", label: "Overview", icon: Info },
+    { id: "demo", label: "Demo", icon: Zap },
+    { id: "blink-types", label: "Blink Types", icon: Repeat },
+    { id: "nfts", label: "NFTs", icon: ImageIcon },
+    { id: "subscription", label: "Subscription", icon: CreditCard },
+    { id: "community", label: "Community", icon: Users },
+    { id: "api", label: "API", icon: Code },
+    { id: "mint", label: "Mint", icon: Printer },
+    { id: "get-started", label: "Get Started", icon: ArrowRight }
+  ]
+
+  useEffect(() => {
+    // Simulating data loading
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 1500)
+
+    // Check for user's preferred theme
+    const userPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    setTheme(userPrefersDark ? 'dark' : 'light')
+  }, [])
+
+  const handleOpenVideoPresentation = () => {
+    router.push('/ui/video-presentation')
+  }
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <Zap className="w-12 h-12 text-primary" />
+        </motion.div>
+      </div>
+    )
+  }
+
+  return (
+    <section className={`py-24 bg-gradient-to-b ${theme === 'light' ? 'from-background to-secondary/20' : 'from-gray-900 to-gray-800'}`}>
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="flex justify-end mb-4">
+          <Button variant="outline" size="icon" onClick={toggleTheme}>
+            {theme === 'light' ? <Moon className="h-[1.2rem] w-[1.2rem]" /> : <Sun className="h-[1.2rem] w-[1.2rem]" />}
+          </Button>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h2 className={`text-4xl font-bold mb-4 ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>Experience Blinkboard MVP</h2>
+          <p className={`text-xl max-w-3xl mx-auto ${theme === 'light' ? 'text-muted-foreground' : 'text-gray-300'}`}>
+            Lightning-fast transactions, powerful features, and an intuitive interface for Solana. Join us in shaping the future of blockchain interactions!
+          </p>
+        </motion.div>
+
+        <div className="mb-8">
+          <nav className={`flex flex-wrap justify-center gap-2 p-2 rounded-lg ${theme === 'light' ? 'bg-muted' : 'bg-gray-700'}`}>
+            {tabs.map((tab) => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 ${theme === 'dark' && 'text-white hover:text-gray-200'}`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </Button>
+            ))}
+          </nav>
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="mt-8"
+          >
+            {activeTab === "overview" && <Overview tabs={tabs} handleOpenVideoPresentation={handleOpenVideoPresentation} />}
+            {activeTab === "demo" && <BlinkboardDemo />}
+            {activeTab === "blink-types" && <BlinkTypes />}
+            {activeTab === "nfts" && <NFTOverview />}
+            {activeTab === "subscription" && <SubscriptionPlans />}
+            {activeTab === "community" && <CommunitySection />}
+            {activeTab === "api" && <APISection />}
+            {activeTab === "mint" && <MintFeature />}
+            {activeTab === "get-started" && <GetStarted />}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
   )
 }

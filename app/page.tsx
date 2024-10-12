@@ -7,6 +7,7 @@ import { Hero } from '@/components/ui/layout/hero'
 import { Features } from '@/components/ui/layout/features'
 import { About } from '@/components/ui/layout/about'
 import Tokenomics from '@/components/ui/layout/tokenomics'
+import Blinkboard from '@/components/ui/layout/blinkboard'
 import { FAQ } from '@/components/ui/layout/faq'
 import { CTA } from '@/components/ui/layout/cta'
 import { Footer } from '@/components/ui/layout/footer'
@@ -50,9 +51,10 @@ export default function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Hero />
-        <Features />
+       <Hero />
         <About />
+        <Features />
+        <Blinkboard />
         <Tokenomics />
         <FAQ />
         <CTA />

@@ -122,6 +122,10 @@ DEFAULT_WALLET_ADDRESS=<Your default wallet address>
 AUTH_SECRET=<Your JWT Secret Key>
 ```
 
+## References
+
+- https://cryptologos.cc
+
 ## Contributing
 
 We welcome contributions from the community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information on how to get involved.
