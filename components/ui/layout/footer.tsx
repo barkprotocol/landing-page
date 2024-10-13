@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MessageCircle, Instagram, Github, Send } from 'lucide-react'
+import { Instagram, Github, Send } from 'lucide-react'
 import { Icon } from '@iconify/react'
 
 export function Footer() {
@@ -22,7 +22,7 @@ export function Footer() {
             <div className="flex space-x-6">
               <a href="https://www.discord.gg" className="text-gray-400 hover:text-primary transition-colors duration-200">
                 <span className="sr-only">Discord</span>
-                <MessageCircle className="h-6 w-6" aria-hidden="true" />
+                <Icon icon="mdi:discord" className="h-6 w-6" aria-hidden="true" />
               </a>
               <a href="https://www.x.com/milton.protocol" className="text-gray-400 hover:text-primary transition-colors duration-200">
                 <span className="sr-only">X (formerly Twitter)</span>
@@ -39,6 +39,10 @@ export function Footer() {
               <a href="https://www.t.me/milton.protocol" className="text-gray-400 hover:text-primary transition-colors duration-200">
                 <span className="sr-only">Telegram</span>
                 <Send className="h-6 w-6" aria-hidden="true" />
+              </a>
+              <a href="https://medium.com/@milton.protocol" className="text-gray-400 hover:text-primary transition-colors duration-200">
+                <span className="sr-only">Medium</span>
+                <Icon icon="mdi:medium" className="h-6 w-6" aria-hidden="true" />
               </a>
             </div>
           </div>
