@@ -61,6 +61,17 @@ MILTON is a revolutionary platform and token on the Solana blockchain, combining
 - Regular meme contests with MILTON token prizes
 - Charitable donations and disaster relief initiatives
 
+Key features of this Blinkboard component include:
+
+1. A tabbed interface for easy navigation between different sections
+2. A demo section for creating and managing "Blinks" (transactions)
+3. An NFT overview section for managing and generating NFTs
+4. A section showcasing different types of Blinks (transaction types)
+5. Subscription plan options
+6. Community engagement section
+7. API documentation section
+8. Token and NFT minting feature
+
 ## Website
 
 Our website showcases the MILTON ecosystem and provides essential information for users and potential investors. Key sections include:

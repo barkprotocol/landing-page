@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowRight, Zap, Coins, BarChart2, Image as ImageIcon, Info, RefreshCcw, Gift, CreditCard, Repeat, FileText, Heart, Shuffle, Vote, Printer, Lock, Wand2, Eye, Check, DollarSign, Bell, Shield, MessageSquare, Trash, Download, Users, Code, ChevronRight } from 'lucide-react'
+import { ArrowRight, Zap, Coins, BarChart2, Image as ImageIcon, Info, RefreshCcw, Gift, CreditCard, Repeat, FileText, Heart, Shuffle, Vote, Printer, Lock, Wand2, Eye, Check, DollarSign, Bell, Shield, MessageSquare, Trash, Download, Users, Code, ChevronRight, Play, Upload } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const BlinkboardDemo = () => {
   const [amount, setAmount] = useState('')
@@ -22,7 +23,12 @@ const BlinkboardDemo = () => {
   const [blinkName, setBlinkName] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('SOL')
   const [transactionSpeed, setTransactionSpeed] = useState(90)
-  const [newFeatures, setNewFeatures] = useState(false)
+  const [newFeatures, setNewFeatures] = useState({
+    enhancedRouting: false,
+    advancedAnalytics: false,
+    multiSigApproval: false,
+    scheduledTransactions: false
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,18 +39,28 @@ const BlinkboardDemo = () => {
     setBlinkName('')
     setPaymentMethod('SOL')
     setTransactionSpeed(90)
-    setNewFeatures(false)
+    setNewFeatures({
+      enhancedRouting: false,
+      advancedAnalytics: false,
+      multiSigApproval: false,
+      scheduledTransactions: false
+    })
   }
 
-  const calculateFee = () => {
+  const calculateFee = useCallback(() => {
     const baseFee = 0.05
     const speedMultiplier = transactionSpeed / 100
-    return (baseFee + (speedMultiplier * 0.01)).toFixed(3)
-  }
+    let featureMultiplier = 1
+    if (newFeatures.enhancedRouting) featureMultiplier += 0.1
+    if (newFeatures.advancedAnalytics) featureMultiplier += 0.05
+    if (newFeatures.multiSigApproval) featureMultiplier += 0.15
+    if (newFeatures.scheduledTransactions) featureMultiplier += 0.1
+    return ((baseFee + (speedMultiplier * 0.01)) * featureMultiplier).toFixed(3)
+  }, [transactionSpeed, newFeatures])
 
   const tokenIcons = {
     SOL: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
-    MILTON: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
+    MILTON: "https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg",
     USDC: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024"
   }
 
@@ -121,13 +137,20 @@ const BlinkboardDemo = () => {
                 <span>Fast</span>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="new-features"
-                checked={newFeatures}
-                onCheckedChange={setNewFeatures}
-              />
-              <Label htmlFor="new-features">Enable new features</Label>
+            <div className="space-y-2">
+              <Label>Advanced Options</Label>
+              <div className="space-y-2">
+                {Object.entries(newFeatures).map(([feature, isEnabled]) => (
+                  <div key={feature} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={feature}
+                      checked={isEnabled}
+                      onCheckedChange={(checked) => setNewFeatures(prev => ({ ...prev, [feature]: checked as boolean }))}
+                    />
+                    <Label htmlFor={feature}>{feature.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="text-sm text-muted-foreground">
               Creation fee: {calculateFee()} SOL + Solana transaction fee
@@ -162,8 +185,8 @@ const BlinkboardDemo = () => {
           <div className="space-y-2">
             <Label className="text-sm">Transaction Security</Label>
             <div className="flex items-center space-x-2">
-              <Lock className="text-yellow-500" />
-              <span className="text-sm text-yellow-500">Secure</span>
+              <Lock className="text-primary" />
+              <span className="text-sm text-primary">Secure</span>
             </div>
             <p className="text-xs text-muted-foreground">
               Your transaction is protected by Solana's advanced encryption and consensus mechanism.
@@ -172,42 +195,42 @@ const BlinkboardDemo = () => {
           <div className="space-y-2">
             <Label className="text-sm">Network Status</Label>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-primary rounded-full"></div>
               <span className="text-sm">Operational</span>
             </div>
           </div>
           <div className="space-y-2">
             <Label className="text-sm">Solana Network</Label>
             <div className="flex items-center space-x-2">
-              <Badge variant="outline">Mainnet</Badge>
-              <Badge variant="success">Online</Badge>
+              <Badge variant="outline" className="bg-primary text-primary-foreground">Mainnet</Badge>
+              <Badge variant="outline" className="bg-primary text-primary-foreground">Online</Badge>
             </div>
           </div>
           <div className="space-y-2">
             <Label className="text-sm">Transaction Monitoring</Label>
             <div className="flex items-center space-x-2">
-              <Bell className="text-yellow-500" />
+              <Bell className="text-primary" />
               <span className="text-sm">Real-time alerts enabled</span>
             </div>
           </div>
           <div className="space-y-2">
             <Label className="text-sm">Fraud Protection</Label>
             <div className="flex items-center space-x-2">
-              <Shield className="text-orange-500" />
+              <Shield className="text-primary" />
               <span className="text-sm">Active</span>
             </div>
           </div>
-          {newFeatures && (
+          {Object.values(newFeatures).some(Boolean) && (
             <div className="space-y-2">
-              <Label className="text-sm">New Features</Label>
-              <div className="flex items-center space-x-2">
-                <Zap className="text-purple-500" />
-                <span className="text-sm">Enhanced transaction routing</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <BarChart2 className="text-indigo-500" />
-                <span className="text-sm">Advanced analytics</span>
-              </div>
+              <Label className="text-sm">Advanced Features</Label>
+              {Object.entries(newFeatures).map(([feature, isEnabled]) => (
+                isEnabled && (
+                  <div key={feature} className="flex items-center space-x-2">
+                    <Zap className="text-primary" />
+                    <span className="text-sm">{feature.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                  </div>
+                )
+              ))}
             </div>
           )}
           <div className="pt-4">
@@ -243,7 +266,7 @@ const NFTOverview = () => {
     }, 2000)
   }
 
-  const handleDeleteNFT = (id) => {
+  const handleDeleteNFT = (id: number) => {
     const index = nfts.findIndex(nft => nft.id === id)
     if (index !== -1) {
       nfts.splice(index, 1)
@@ -281,6 +304,7 @@ const NFTOverview = () => {
               <>Generating... <Wand2 className="ml-2 h-4 w-4 animate-spin" /></>
             ) : (
               <>Generate NFT <Wand2 className="ml-2 h-4 w-4" /></>
+            
             )}
           </Button>
         </div>
@@ -485,7 +509,8 @@ const MintFeature = () => {
       isNFT, 
       nftMetadata, 
       royaltyPercentage,
-      nftType
+      nftType,
+      previewImage
     })
     // Reset form
     setTokenName('')
@@ -498,6 +523,17 @@ const MintFeature = () => {
     setRoyaltyPercentage('0')
     setNftType('Image')
     setPreviewImage('')
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   return (
@@ -609,13 +645,12 @@ const MintFeature = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="previewImage">Preview Image URL</Label>
+                <Label htmlFor="previewImage">Upload Preview Image</Label>
                 <Input
                   id="previewImage"
-                  type="url"
-                  value={previewImage}
-                  onChange={(e) => setPreviewImage(e.target.value)}
-                  placeholder="https://example.com/preview.png"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
                 />
               </div>
               {previewImage && (
@@ -623,8 +658,8 @@ const MintFeature = () => {
                   <img src={previewImage} alt="NFT Preview" className="max-w-full h-auto rounded-lg" />
                 </div>
               )}
-              <Button type="button" className="mt-2">
-                Download Image <Download className="ml-2 h-4 w-4" />
+              <Button type="button" className="mt-2" onClick={() => window.open(previewImage, '_blank')}>
+                View Full Image <Eye className="ml-2 h-4 w-4" />
               </Button>
             </>
           )}
