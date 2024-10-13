@@ -1,0 +1,240 @@
+openapi: 3.0.0
+info:
+  title: Milton Test API
+  version: 1.0.0
+  description: Test API for Milton token transactions, transfers, swaps, and management
+  contact:
+    name: Milton Test API Support
+    email: test-support@miltonprotocol.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://test-api.miltonprotocol.com/api/demo
+    description: Test Server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    TokenInfo:
+      type: object
+      properties:
+        milton:
+          $ref: '#/components/schemas/CurrencyInfo'
+        usdc:
+          $ref: '#/components/schemas/CurrencyInfo'
+
+    CurrencyInfo:
+      type: object
+      properties:
+        supply:
+          type: integer
+          description: Total supply of tokens
+        decimals:
+          type: integer
+          description: Number of decimal places for the token
+        price:
+          type: number
+          description: Current price of the token in USD
+        treasuryBalance:
+          type: number
+          description: Tokens held in treasury
+
+    TransactionRequest:
+      type: object
+      required:
+        - buyerPublicKey
+        - miltonAmount
+        - paymentCurrency
+      properties:
+        buyerPublicKey:
+          type: string
+          description: Solana public key of the buyer
+        miltonAmount:
+          type: number
+          description: Amount of Milton tokens to purchase
+        paymentCurrency:
+          type: string
+          enum: [SOL, USDC]
+          description: Currency used for payment (SOL or USDC)
+        paymentAmount:
+          type: number
+          description: Amount of currency paid
+        slippageTolerance:
+          type: number
+          description: Slippage tolerance for token swap (%)
+
+    TransactionResponse:
+      type: object
+      properties:
+        transaction:
+          type: string
+          description: Encoded Solana transaction
+        transactionId:
+          type: string
+          description: Unique ID for the transaction
+        feeEstimate:
+          type: number
+          description: Estimated fee for the transaction
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration time for the transaction
+
+    DonationRequest:
+      type: object
+      required:
+        - senderPublicKey
+        - recipientPublicKey
+        - amount
+        - donationType
+      properties:
+        senderPublicKey:
+          type: string
+          description: Public key of the sender
+        recipientPublicKey:
+          type: string
+          description: Public key of the recipient
+        amount:
+          type: number
+          description: Amount of Milton tokens to donate
+        donationType:
+          type: string
+          enum: [gift, blink, heart]
+          description: Type of donation
+        message:
+          type: string
+          description: Optional message with the donation
+
+    DonationResponse:
+      type: object
+      properties:
+        donationId:
+          type: string
+          description: Unique ID for the donation
+        status:
+          type: string
+          enum: [pending, completed, failed]
+          description: Status of the donation
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the donation
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: object
+          additionalProperties: true
+
+paths:
+  /tokens:
+    get:
+      summary: Fetch Milton and USDC token information
+      operationId: getTokenInfo
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenInfo'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /transactions:
+    post:
+      summary: Create Milton token purchase transaction
+      operationId: createTransaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /swaps:
+    post:
+      summary: Swap between SOL, USDC, and Milton tokens
+      operationId: createSwap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: Swap successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /donations:
+    post:
+      summary: Send a donation
+      operationId: createDonation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DonationRequest'
+      responses:
+        '200':
+          description: Donation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationResponse'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []

@@ -12,7 +12,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Pie, Line } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js'
 import Link from 'next/link'
-import TokenSales from './token-sale'
+import TokenSales from './token-sale-calculator'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 

@@ -142,6 +142,66 @@ components:
           type: object
           additionalProperties: true
 
+    UserBalance:
+      type: object
+      properties:
+        publicKey:
+          type: string
+          description: Solana public key of the user
+        miltonBalance:
+          type: number
+          description: User's Milton token balance
+        usdcBalance:
+          type: number
+          description: User's USDC balance
+        solBalance:
+          type: number
+          description: User's SOL balance
+
+    StakingRequest:
+      type: object
+      required:
+        - userPublicKey
+        - amount
+        - duration
+      properties:
+        userPublicKey:
+          type: string
+          description: Solana public key of the user
+        amount:
+          type: number
+          description: Amount of Milton tokens to stake
+        duration:
+          type: integer
+          description: Staking duration in days
+
+    StakingResponse:
+      type: object
+      properties:
+        stakingId:
+          type: string
+          description: Unique ID for the staking transaction
+        userPublicKey:
+          type: string
+          description: Solana public key of the user
+        amount:
+          type: number
+          description: Amount of Milton tokens staked
+        duration:
+          type: integer
+          description: Staking duration in days
+        startDate:
+          type: string
+          format: date-time
+          description: Start date of the staking period
+        endDate:
+          type: string
+          format: date-time
+          description: End date of the staking period
+        estimatedRewards:
+          type: number
+          description: Estimated rewards for the staking period
+
 paths:
   /milton/tokens:
     get:
@@ -261,7 +321,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
     get:
-      summary: Retrieve user’s referrals
+      summary: Retrieve user's referrals
       operationId: getUserReferrals
       parameters:
         - name: referredBy
@@ -331,6 +391,80 @@ paths:
                 $ref: '#/components/schemas/Error'
         '403':
           description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /milton/balance:
+    get:
+      summary: Get user's token balances
+      operationId: getUserBalance
+      parameters:
+        - name: publicKey
+          in: query
+          description: Solana public key of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful retrieval of user balances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBalance'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /milton/staking:
+    post:
+      summary: Stake Milton tokens
+      operationId: stakeMiltonTokens
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StakingRequest'
+      responses:
+        '200':
+          description: Staking successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StakingResponse'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Get user's staking information
+      operationId: getUserStakingInfo
+      parameters:
+        - name: publicKey
+          in: query
+          description: Solana public key of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful retrieval of user staking information
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StakingResponse'
+        '400':
+          description: Bad request - invalid input data
           content:
             application/json:
               schema:

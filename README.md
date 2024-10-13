@@ -13,11 +13,14 @@ Welcome to the Milton Platform MVP Monorepo! This repository contains all the co
   - [Landing Page](#landing-page)
   - [Blinkboard](#blinkboard)
   - [Dashboard](#dashboard)
+- [Programs](#programs)
+- [API Documentation](#api-documentation)
 - [Brand Guide](#brand-guide)
 - [Screenshots](#screenshots)
 - [Demo](#demo)
 - [Getting Started](#getting-started)
 - [Development](#development)
+- [To-Do List](#to-do-list)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -86,7 +89,7 @@ An administrative interface for managing the Milton Platform and accessing advan
 **Tech Stack:**
 - Next.js
 - React
-- Solana web3.js
+- Solana Web3.js
 - TypeScript
 - Tailwind CSS
 - Shadcn UI
@@ -97,6 +100,97 @@ An administrative interface for managing the Milton Platform and accessing advan
 - Configuration settings
 - Advanced reporting tools
 - Tools for managing Solana actions and blinks
+
+## Programs
+
+Built using the Anchor framework:
+
+- SPL token Minter
+- Milton test token & keypair generator
+- Token Sales
+
+### Tokens
+
+- **Devnet:** MILTY
+- **Mainnet:** MILTON
+
+## API Documentation
+
+The Milton Platform API provides endpoints to interact with various features of the platform. The API follows RESTful principles and supports JSON format for request and response bodies.
+
+### Base URL
+
+```
+https://api.miltonprotocol.com/v1
+```
+
+### Authentication
+
+All API requests require an authentication token. You can obtain your token by logging into the Milton webapp.
+
+### Endpoints
+
+#### 1. User Authentication
+
+- **POST** `/auth/login`
+
+  - **Request Body:**
+    ```json
+    {
+      "email": "user@example.com",
+      "password": "your_password"
+    }
+    ```
+
+  - **Response:**
+    ```json
+    {
+      "token": "your_jwt_token",
+      "user": {
+        "id": "user_id",
+        "email": "user@example.com"
+      }
+    }
+    ```
+
+#### 2. Token Management
+
+- **GET** `/tokens`
+
+  - **Response:**
+    ```json
+    [
+      {
+        "id": "token_id",
+        "name": "Token Name",
+        "symbol": "TOKEN",
+        "balance": 100
+      }
+    ]
+    ```
+
+#### 3. Transaction Processing
+
+- **POST** `/transactions`
+
+  - **Request Body:**
+    ```json
+    {
+      "token_id": "token_id",
+      "amount": 10,
+      "recipient": "recipient_address"
+    }
+    ```
+
+  - **Response:**
+    ```json
+    {
+      "transaction_id": "transaction_id",
+      "status": "success"
+    }
+    ```
+
+For a complete list of endpoints, request/response formats, and detailed documentation, please refer to the [API Documentation](https://api.miltonplatform.com/docs).
 
 ## Brand Guide
 
@@ -179,7 +273,7 @@ For development, ensure you have Node.js and npm installed on your machine. Use 
 
 ## To-Do List
 
-- Create an modular dashboard dapp and implementations.
+- Create a modular dashboard dapp and implementations.
 
 ## Contributing
 

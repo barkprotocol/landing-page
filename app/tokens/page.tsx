@@ -72,7 +72,7 @@ export default function TokenPage() {
     setLoadingText('Waiting for Transaction confirmation!')
 
     try {
-      const connection = new Connection('https://stylish-dawn-film.solana-mainnet.quiknode.pro/e38b1fd65cb81a95ae5f3a2404b2e48ee6b0d458')
+      const connection = new Connection('https://stylish-dawn-film.solana-mainnet.quiknode.pro/')
 
       const recipientPubKey = new PublicKey("")
       const amount = 0.01 * LAMPORTS_PER_SOL

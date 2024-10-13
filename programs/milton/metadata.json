@@ -1,0 +1,37 @@
+{
+    "name": "MILTON",
+    "symbol": "MILTON",
+    "description": "MILTON is a Solana-based token designed for donations, social finance and charity incentives.",
+    "image": "https://miltonprotocol.com/milton_logo.png",
+    "external_url": "https://miltonprotocol.com",
+    "social_media_logo_url": "https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg",
+    "website": "https://miltonprotocol.com",
+    "social_media": {
+      "telegram": "https://t.me/milton_protocol",
+      "twitter": "https://twitter.com/milton_protocol",
+      "discord": "https://discord.gg/milton_protocol",
+      "instagram": "https://instagram.com/milton.protocol",
+      "tiktok": "https://tiktok.com/@milton.protocol",
+      "medium": "https://medium.com/@miltonprotocol"
+    },
+    "properties": {
+      "files": [
+        {
+          "uri": "https://miltonprotocol.com/milton_logo.svg",
+          "type": "image/svg"
+        },
+        {
+          "uri": "https://miltonprotocol.com/milton_social_logo.svg",
+          "type": "image/svg"
+        }
+      ],
+      "category": "spl-token",
+      "creators": [
+        {
+          "address": "CREATOR_ADDRESS_HERE",
+          "share": 500
+        }
+      ]
+    },
+    "categories": ["spl-token", "token-2022", "nft"]
+  }

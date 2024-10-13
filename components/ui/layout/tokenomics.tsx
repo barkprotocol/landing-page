@@ -12,7 +12,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Pie, Line } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js'
 import Link from 'next/link'
-import TokenSales from "@/components/ui/milton/token-sale"
+import TokenSales from "@/components/ui/milton/token-sale-calculator"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -147,12 +147,12 @@ export default function Tokenomics() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <div className="flex justify-center">
-            <TabsList className="inline-flex h-12 items-center justify-center rounded-md bg-secondary p-1 text-secondary-foreground w-full max-w-6xl overflow-x-auto">
+            <TabsList className="inline-flex h-auto items-center justify-center rounded-md bg-secondary p-1 text-secondary-foreground w-full max-w-6xl overflow-x-auto flex-wrap">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 sm:px-6 sm:py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 sm:px-6 sm:py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1 m-1"
                 >
                   <tab.icon className="mr-2 h-4 w-4" />
                   {tab.label}
@@ -177,18 +177,18 @@ export default function Tokenomics() {
                     <CardDescription>The meme-powered token on Solana</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex justify-between items-start mb-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start mb-6">
                       <div className="space-y-6 flex-1">
                         <p className="text-base sm:text-lg text-muted-foreground">
                           MILTON is a community-driven meme token built on the Solana blockchain, combining the power of memes with decentralized finance and social impact. With a total supply of 18.446 billion tokens, MILTON aims to create a vibrant ecosystem where creativity, humor, financial innovation, and charitable efforts intersect.
                         </p>
                       </div>
-                      <div className="ml-6 flex-shrink-0">
+                      <div className="mt-4 md:mt-0 md:ml-6 flex-shrink-0">
                         <Image
                           src="https://ucarecdn.com/137628fb-f546-490c-887a-1d0d3177f542/MiltonCard.png"
                           alt="MILTON Token Logo"
-                          width={80}
-                          height={80}
+                          width={120}
+                          height={120}
                           className="rounded-full shadow-lg"
                         />
                       </div>
@@ -206,8 +206,8 @@ export default function Tokenomics() {
                         <li>Quarterly token burn of 1.5% to reduce supply over time</li>
                       </ul>
                     </div>
-                    <div className="overflow-x-auto">
-                      <Table className="mt-6 w-full">
+                    <div className="overflow-x-auto mt-8">
+                      <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-1/2">Attribute</TableHead>
@@ -231,7 +231,7 @@ export default function Tokenomics() {
               <TabsContent value="allocation" className="space-y-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl sm:text-2xl">Allocation</CardTitle>
+                    <CardTitle className="text-xl  sm:text-2xl">Allocation</CardTitle>
                     <CardDescription>Distribution of the max token supply</CardDescription>
                   </CardHeader>
                   
@@ -293,9 +293,9 @@ export default function Tokenomics() {
                     <CardDescription>Key figures about MILTON token</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                       {tokenMetrics.map((metric, index) => (
-                        <div key={index} className="space-y-2">
+                        <div key={index} className="space-y-2 bg-secondary/50 p-4 rounded-lg">
                           <h3 className="text-base sm:text-lg font-semibold">{metric.label}</h3>
                           <p className="text-xl sm:text-2xl font-bold text-primary">{metric.value}</p>
                           <p className="text-xs sm:text-sm text-muted-foreground">{metric.description}</p>
@@ -313,7 +313,7 @@ export default function Tokenomics() {
                     <CardDescription>Ways to use your MILTON tokens</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="mb-8">
+                    <div className="mb-8 bg-primary/10 p-4 rounded-lg">
                       <h3 className="text-lg sm:text-xl font-semibold mb-3">MILTON's Commitment to Global Good</h3>
                       <p className="text-base sm:text-lg text-muted-foreground">
                         A portion of all transaction fees is allocated to charitable causes and global initiatives, making every MILTON transaction a step towards positive change.
@@ -448,7 +448,7 @@ export default function Tokenomics() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-base  sm:text-lg">Year</TableHead>
+                            <TableHead className="text-base sm:text-lg">Year</TableHead>
                             <TableHead className="text-base sm:text-lg">Circulating Supply</TableHead>
                             <TableHead className="text-base sm:text-lg">% of Total</TableHead>
                           </TableRow>
@@ -477,7 +477,7 @@ export default function Tokenomics() {
                     <CardDescription>Where to trade MILTON tokens</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                       {dexList.map((dex, index) => (
                         <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
                           <CardHeader>
@@ -569,7 +569,7 @@ export default function Tokenomics() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="current-price">Current Price ($)</Label>
                           <Input
@@ -593,7 +593,7 @@ export default function Tokenomics() {
                           />
                         </div>
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-2 bg-secondary/50 p-4 rounded-lg">
                         <h3 className="text-lg font-semibold">Calculated Metrics</h3>
                         <p>Market Cap: ${(currentPrice * circulatingSupply).toLocaleString()}</p>
                         <p>Fully Diluted Market Cap: ${(currentPrice * 18446000000).toLocaleString()}</p>

@@ -1,0 +1,27 @@
+{
+    "name": "MILT",
+    "symbol": "MILT",
+    "description": "MILT is a Solana-based token designed for test use cases.",
+    "image": "https://example.com/milton_logo.png",
+    "external_url": "https://milty-test-token.com",
+    "social_media_logo_url": "https://example.com/milt_social_logo.png",
+    "properties": {
+      "files": [
+        {
+          "uri": "https://example.com/milt_logo.png",
+          "type": "image/png"
+        },
+        {
+          "uri": "https://example.com/milt_social_logo.png",
+          "type": "image/png"
+        }
+      ],
+      "category": "token",
+      "creators": [
+        {
+          "address": "CREATOR_ADDRESS_HERE",
+          "share": 100
+        }
+      ]
+    }
+  }
