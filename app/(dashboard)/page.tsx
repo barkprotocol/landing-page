@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { TokenBalances } from './components/token-balances'
-import { RecentTransactions } from './components/recent-transactions'
-import { PortfolioChart } from './components/portfolio-chart'
-import { MiltonFeatures } from './components/ui/features'
-import { RewardsProgress } from './components/rewards-progress'
-import { RecentBlinks } from './components/recent-blinks'
-import { SolanaNetworkStatus } from './components/solana-network-status'
+import { TokenBalances } from './components/ui/token-balances'
+import { RecentTransactions } from './components/ui/recent-transactions'
+import { PortfolioChart } from './components/ui/portfolio-chart'
+import { MiltonFeatures } from './components/ui/layout/features'
+import { RewardsProgress } from './components/ui/rewards-progress'
+import { RecentBlinks } from './components/ui/recent-blinks'
+import { SolanaNetworkStatus } from './components/ui/solana-network-status'
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Zap, Send, Wallet } from 'lucide-react'
