@@ -7,7 +7,7 @@ export function Terminal() {
   const [terminalStep, setTerminalStep] = useState(0);
   const [copied, setCopied] = useState(false);
   const terminalSteps = [
-    'git clone https://github.com/milton-labs/next-saas-starter',
+    'git clone https://github.com/milton-labs/milton-baas-starter',
     'pnpm install',
     'pnpm db:setup',
     'pnpm db:migrate',

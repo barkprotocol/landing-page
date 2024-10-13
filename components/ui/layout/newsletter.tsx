@@ -18,20 +18,31 @@ export function Newsletter() {
     setIsLoading(true)
 
     try {
-      // Simulating an API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      setIsSubscribed(true)
-      toast({
-        title: "Subscribed!",
-        description: "You've successfully joined the Milton meme revolution!",
-        duration: 5000,
+      const response = await fetch('/api/v1/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
       })
-      setEmail('')
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setIsSubscribed(true)
+        toast({
+          title: "Subscribed!",
+          description: "You've successfully joined the Milton meme revolution!",
+          duration: 5000,
+        })
+        setEmail('')
+      } else {
+        throw new Error(data.error || 'Failed to subscribe')
+      }
     } catch (error) {
       toast({
         title: "Subscription failed",
-        description: "There was a problem subscribing you. Please try again.",
+        description: error instanceof Error ? error.message : "There was a problem subscribing you. Please try again.",
         variant: "destructive",
         duration: 5000,
       })

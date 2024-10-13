@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Overview } from '@/components/dashboard/overview'
-import { RecentActivity } from '@/components/dashboard/recent-activity'
-import { MemeGenerator } from '@/components/dashboard/meme-generator'
+import { Overview } from '@/components/ui/overview'
+import { RecentActivity } from '@/components/ui/recent-activity'
+import { MemeGenerator } from '@/components/ui/generator'
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<string>('overview')

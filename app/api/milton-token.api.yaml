@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Milton Management API
+  title: Milton Platform & Management API
   version: 1.0.0
   description: >
     This API allows users to interact with Milton tokens on the Solana blockchain 

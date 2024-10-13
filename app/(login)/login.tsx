@@ -16,7 +16,11 @@ import { SolanaLoginButton } from '@/components/ui/solana-login-button';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
+interface LoginProps {
+  mode?: 'signin' | 'signup';
+}
+
+export function Login({ mode = 'signin' }: LoginProps) {
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
   const priceId = searchParams.get('priceId');
@@ -69,10 +73,8 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     }
   };
 
-  const buttonClasses = "w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700";
-
   return (
-    <div className="min-h-[100dvh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <div className="min-h-[100dvh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Image
@@ -82,19 +84,19 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
             height={68}
           />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
           {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" action={setState.formAction}>
             <input type="hidden" name="redirect" value={redirect || ''} />
             <input type="hidden" name="priceId" value={priceId || ''} />
             <input type="hidden" name="inviteId" value={inviteId || ''} />
             <div>
-              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <Label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Email
               </Label>
               <div className="mt-1">
@@ -105,14 +107,14 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                   autoComplete="email"
                   required
                   maxLength={50}
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  className="w-full"
                   placeholder="Enter your email"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <Label htmlFor="password" className="block text-sm font-medium text-foreground">
                 Password
               </Label>
               <div className="mt-1">
@@ -124,20 +126,20 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                   required
                   minLength={8}
                   maxLength={100}
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  className="w-full"
                   placeholder="Enter your password"
                 />
               </div>
             </div>
 
             {state?.error && (
-              <div className="text-red-500 text-sm">{state.error}</div>
+              <div className="text-destructive text-sm">{state.error}</div>
             )}
 
             <div>
               <Button
                 type="submit"
-                className={buttonClasses}
+                className="w-full"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -157,36 +159,36 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-input" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+                <span className="px-2 bg-background text-muted-foreground">
                   Or continue with
                 </span>
               </div>
             </div>
 
             <div className="mt-6">
-              <SolanaLoginButton onClick={handleSolanaLogin} className={buttonClasses} />
+              <SolanaLoginButton onClick={handleSolanaLogin} className="w-full" />
             </div>
           </div>
 
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-input" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+                <span className="px-2 bg-background text-muted-foreground">
                   {mode === 'signin' ? 'New to our platform?' : 'Already have an account?'}
                 </span>
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 text-center">
               <Link
                 href={`${mode === 'signin' ? '/signup' : '/login'}`}
-                className="font-medium text-gray-700 hover:text-gray-500"
+                className="font-medium text-primary hover:text-primary/80"
               >
                 {mode === 'signin' ? 'Create an account' : 'Sign in'}
               </Link>

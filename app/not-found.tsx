@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { CircleIcon, Frown, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -28,7 +29,13 @@ export default function NotFound() {
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
         >
-          <CircleIcon className="h-16 w-16 text-primary" />
+          <Image
+            src="https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg"
+            alt="Milton Logo"
+            width={64}
+            height={64}
+            className="text-primary"
+          />
         </motion.div>
         <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
           Oops! Page Not Found
