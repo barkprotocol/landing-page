@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { WalletButton } from '@/components/providers'
+import { WalletButton } from '@/components/ui/wallet-button'
 import Preview from "@/components/preview"
 import {
   PublicKey,

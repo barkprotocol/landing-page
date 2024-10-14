@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { TokenBalances } from './components/ui/token-balances'
+import { TokenBalances } from './components/ui/balance'
 import { RecentTransactions } from './components/ui/recent-transactions'
 import { PortfolioChart } from './components/ui/portfolio-chart'
 import { MiltonFeatures } from './components/ui/layout/features'
