@@ -120,7 +120,6 @@ export default function Tokenomics() {
     { id: 'dex', label: 'DEX', icon: LayoutGrid },
     { id: 'token-sale', label: 'Token Sale', icon: Banknote },
     { id: 'buy', label: 'Buy', icon: ShoppingCart },
-    { id: 'calculator', label: 'Calculator', icon: Calculator },
   ]
 
   return (

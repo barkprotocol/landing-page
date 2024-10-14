@@ -7,7 +7,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['milton-token.com', 'unsplash.com', 'uploadcare.com', 'arweave.org', 'cryptologos.cc', 'ucarecdn.com'],
+    domains: ['miltonprotocol.com', 'unsplash.com', 'uploadcare.com', 'arweave.org', 'cryptologos.cc', 'ucarecdn.com'],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -16,7 +16,6 @@ const nextConfig = {
     locales: ['en'],
     defaultLocale: 'en',
   },
-  /** @type {import('next').NextConfig['headers']} */
   async headers() {
     return [
       {
@@ -50,9 +49,7 @@ const nextConfig = {
       },
     ];
   },
-  /** @type {import('next').NextConfig['webpack']} */
   webpack: (config, { dev, isServer }) => {
-    // Custom webpack config here
     if (!dev && !isServer) {
       Object.assign(config.resolve.alias, {
         'react/jsx-runtime.js': 'preact/compat/jsx-runtime',
@@ -78,4 +75,4 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
 };
 
-module.exports = nextConfig;
+export default nextConfig;

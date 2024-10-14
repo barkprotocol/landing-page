@@ -21,7 +21,7 @@ export function About() {
     { 
       title: "Meme Economy", 
       description: "Create and trade meme-based assets", 
-      details: "Participate in a vibrant meme marketplace where creativity is rewarded with real economic value." 
+      details: "Participate in a vibrant NFT marketplace where creativity is rewarded with real economic value." 
     },
     { 
       title: "Social Engagement", 
@@ -41,7 +41,7 @@ export function About() {
   ]
 
   return (
-    <section className="py-24 bg-gradient-to-b from-background to-secondary/20">
+    <section className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -49,10 +49,10 @@ export function About() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
             The Meme Thunder of Solana
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Revolutionizing meme culture on the Solana blockchain
           </p>
         </motion.div>
@@ -94,20 +94,20 @@ export function About() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="space-y-6"
           >
-            <h3 className="text-2xl font-bold text-foreground">
+            <h3 className="text-2xl font-bold text-gray-900">
               About Milton
             </h3>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-gray-600">
               Milton Token (MILTON) is not just another meme coin; it's a revolution in the world of memes and blockchain technology. Built on the lightning-fast Solana network, Milton combines the power of decentralized finance with the viral nature of internet culture.
             </p>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-gray-600">
               Our mission is to create a vibrant ecosystem where creativity meets opportunity, and where meme enthusiasts can turn their passion into real value while making a positive impact on the world.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
               {features.map((feature, index) => (
                 <Card 
                   key={index} 
-                  className="bg-card shadow-md hover:shadow-lg transition-all duration-300"
+                  className="bg-white shadow-md hover:shadow-lg transition-all duration-300"
                 >
                   <CardContent className="p-4">
                     <h4 className="text-lg font-semibold text-primary mb-2 flex items-center justify-between">
@@ -117,7 +117,7 @@ export function About() {
                           <TooltipTrigger asChild>
                             <Button variant="ghost" size="sm" className="p-0">
                               <span className="sr-only">More info about {feature.title}</span>
-                              <Info className="h-4 w-4 text-muted-foreground" />
+                              <Info className="h-4 w-4 text-gray-400" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -126,7 +126,7 @@ export function About() {
                         </Tooltip>
                       </TooltipProvider>
                     </h4>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    <p className="text-sm text-gray-600">{feature.description}</p>
                   </CardContent>
                 </Card>
               ))}

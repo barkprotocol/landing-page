@@ -3,6 +3,7 @@
   "description": "The Storm of Solana: Brace Yourself for the Fastest, Innovative, and Most Chaotic Token on the Blockchain!",
   "version": "0.1.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",
@@ -15,6 +16,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
     "@faker-js/faker": "^9.0.3",
     "@hookform/resolvers": "^3.9.0",
     "@iconify/react": "^5.0.2",
@@ -81,10 +83,12 @@
     "cors": "^2.8.5",
     "cross-fetch": "^4.0.0",
     "crypto": "^1.0.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^11.11.7",
+    "fs": "0.0.1-security",
     "install": "^0.13.0",
     "ipfs-http-client": "^60.0.1",
     "jose": "^5.9.3",
@@ -101,6 +105,7 @@
     "qrcode.react": "^4.0.1",
     "react": "^19.0.0-rc-09111202-20241011",
     "react-chartjs-2": "^5.2.0",
+    "react-day-picker": "8.10.1",
     "react-dom": "^19.0.0-rc-7771d3a7-20240827",
     "react-hook-form": "^7.53.0",
     "react-hot-toast": "^2.4.1",

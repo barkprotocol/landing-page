@@ -7,7 +7,7 @@ import { Hero } from '@/components/ui/layout/hero'
 import { Features } from '@/components/ui/layout/features'
 import { About } from '@/components/ui/layout/about'
 import Tokenomics from '@/components/ui/layout/tokenomics'
-import Blinkboard from '@/components/ui/layout/blinkboard'
+import HowItWorks from '@/components/ui/layout/how-it-works'
 import { FAQ } from '@/components/ui/layout/faq'
 import { CTA } from '@/components/ui/layout/cta'
 import { Footer } from '@/components/ui/layout/footer'
@@ -60,7 +60,7 @@ export default function HomePage() {
         <Hero />
         <About />
         <Features />
-        <Blinkboard />
+        <HowItWorks />
         <Tokenomics />
         <FAQ />
         <CTA />

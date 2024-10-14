@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { motion } from 'framer-motion'
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, Token } from '@solana/spl-token'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -13,12 +12,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, AlertCircle, CheckCircle2, Calculator } from 'lucide-react'
+import { Loader2, AlertCircle, CheckCircle2, Calculator, Info } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { WalletButton } from "@/components/ui/wallet-button"
 
-const MILTON_MINT = new PublicKey('718VHxdiw4V15JzjQ5FHHWuWiPE3cJTmZxGz9U3HgeEv') // Replace with actual Milton token mint address
+const MILTON_MINT = new PublicKey('718VHxdiw4V15JzjQ5FHHWuWiPE3cJTmZxGz9U3HgeEv')
 const MILTON_DECIMALS = 9
 const MILTON_PRICE = 0.000001 // Price in USDC
 
@@ -82,7 +83,7 @@ interface SalePhase {
 const salePhases: SalePhase[] = [
   {
     name: 'Pre-Sale',
-    description: 'Early access for suppoters addresses',
+    description: 'Early access for supporter addresses',
     startDate: '2024-11-01T00:00:00Z',
     endDate: '2024-11-14T15:59:59Z',
     price: 0.00001,
@@ -147,6 +148,11 @@ export default function TokenSaleCalculator() {
         setSaleProgress(data.progress)
       } catch (error) {
         console.error('Error fetching sale progress:', error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch sale progress. Please try again later.",
+          variant: "destructive",
+        })
       }
     }
 
@@ -178,15 +184,16 @@ export default function TokenSaleCalculator() {
       clearInterval(saleInterval)
       clearInterval(priceInterval)
     }
-  }, [])
+  }, [toast])
 
-  useEffect(() => {
-    if (isLoading || calculatorError) return
+  const calculateResults = useMemo(() => {
+    if (isLoading || calculatorError || !amount) return null
 
-    const calculateFee = () => {
-      const feeRate = feeRates[tokenVersion][transactionType]
-      return parseFloat(amount) * feeRate
-    }
+    const amountNum = parseFloat(amount)
+    if (isNaN(amountNum) || amountNum <= 0) return null
+
+    const feeRate = feeRates[tokenVersion][transactionType]
+    const feeAmount = amountNum * feeRate
 
     const convertToUSD = (value: number, currency: Currency) => {
       switch (currency) {
@@ -210,22 +217,31 @@ export default function TokenSaleCalculator() {
       }
     }
 
-    const amountInUSD = convertToUSD(parseFloat(amount), inputCurrency)
-    const newFee = calculateFee()
+    const amountInUSD = convertToUSD(amountNum, inputCurrency)
     const newMiltonAmount = amountInUSD / MILTON_PRICE
-    const newTotalCost = amountInUSD + newFee
-
-    setFee(convertFromUSD(newFee, outputCurrency))
-    setMiltonAmount(newMiltonAmount)
-    setTotalCost(convertFromUSD(newTotalCost, outputCurrency))
+    const newTotalCost = amountInUSD + convertToUSD(feeAmount, inputCurrency)
 
     const newAllocation = Object.entries(feeAllocations[tokenVersion]).reduce((acc, [key, value]) => {
-      acc[key as keyof FeeAllocation] = convertFromUSD(newFee * value, outputCurrency)
+      acc[key as keyof FeeAllocation] = convertFromUSD(feeAmount * value, outputCurrency)
       return acc
     }, {} as Record<keyof FeeAllocation, number>)
 
-    setAllocation(newAllocation)
+    return {
+      fee: convertFromUSD(feeAmount, outputCurrency),
+      miltonAmount: newMiltonAmount,
+      totalCost: convertFromUSD(newTotalCost, outputCurrency),
+      allocation: newAllocation,
+    }
   }, [amount, transactionType, tokenVersion, inputCurrency, outputCurrency, solPrice, usdcPrice, isLoading, calculatorError])
+
+  useEffect(() => {
+    if (calculateResults) {
+      setFee(calculateResults.fee)
+      setMiltonAmount(calculateResults.miltonAmount)
+      setTotalCost(calculateResults.totalCost)
+      setAllocation(calculateResults.allocation)
+    }
+  }, [calculateResults])
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -239,6 +255,13 @@ export default function TokenSaleCalculator() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 6,
     }).format(value).replace('$', currency === 'SOL' ? 'SOL ' : '$')
+  }
+
+  const formatNumber = (value: number, decimals: number = 2) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(value)
   }
 
   const handleTransaction = async (phase: SalePhase) => {
@@ -355,6 +378,7 @@ export default function TokenSaleCalculator() {
 
   const handleTransfer = async () => {
     if (!publicKey) {
+      
       toast({
         title: "Wallet not connected",
         description: "Please connect your wallet to transfer tokens.",
@@ -398,7 +422,7 @@ export default function TokenSaleCalculator() {
         )
       )
 
-      const  signature = await sendTransaction(transaction, connection)
+      const signature = await sendTransaction(transaction, connection)
       
       toast({
         title: "Transfer submitted",
@@ -447,7 +471,7 @@ export default function TokenSaleCalculator() {
         </motion.div>
 
         <div className="flex justify-center mb-8">
-          <WalletMultiButton className="bg-primary hover:bg-primary/90 text-primary-foreground" />
+          <WalletButton />
         </div>
 
         <Tabs value={activeTab} onValueChange={(value: 'sale' | 'calculator') => setActiveTab(value)} className="space-y-8">
@@ -456,276 +480,300 @@ export default function TokenSaleCalculator() {
             <TabsTrigger value="calculator">Token Calculator</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="sale">
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Sale Progress</CardTitle>
-                <CardDescription>Overall token sale progress across all phases</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Progress value={saleProgress} className="w-full" />
-                <p className="text-sm text-muted-foreground mt-2">{saleProgress}% of tokens sold</p>
-              </CardContent>
-            </Card>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <TabsContent value="sale">
+                <Card className="mb-8">
+                  <CardHeader>
+                    <CardTitle>Sale Progress</CardTitle>
+                    <CardDescription>Overall token sale progress across all phases</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Progress value={saleProgress} className="w-full" />
+                    <p className="text-sm text-muted-foreground mt-2">{formatNumber(saleProgress)}% of tokens sold</p>
+                  </CardContent>
+                </Card>
 
-            <Tabs value={activePhase} onValueChange={setActivePhase} className="space-y-8">
-              <TabsList className="grid w-full grid-cols-3 gap-4">
-                {salePhases.map((phase) => (
-                  <TabsTrigger
-                    key={phase.name}
-                    value={phase.name.toLowerCase().replace(' ', '-')}
-                    className="w-full"
-                  >
-                    {phase.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {salePhases.map((phase) => (
-                <TabsContent key={phase.name} value={phase.name.toLowerCase().replace(' ', '-')}>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{phase.name}</CardTitle>
-                      <CardDescription>{phase.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Start Date</Label>
-                          <p>{new Date(phase.startDate).toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <Label>End Date</Label>
-                          <p>{new Date(phase.endDate).toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <Label>Price</Label>
-                          <p>{phase.price} USDC</p>
-                        </div>
-                        <div>
-                          <Label>Total Supply</Label>
-                          <p>{phase.totalSupply.toLocaleString()} MILTON</p>
-                        </div>
-                        <div>
-                          <Label>Min Purchase</Label>
-                          <p>{phase.minPurchase.toLocaleString()} MILTON</p>
-                        </div>
-                        <div>
-                          <Label>Max Purchase</Label>
-                          <p>{phase.maxPurchase.toLocaleString()} MILTON</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amount">Amount to Purchase</Label>
-                        <Input
-                          id="amount"
-                          type="number"
-                          placeholder="Enter MILTON amount"
-                          value={amount}
-                          onChange={handleAmountChange}
-                          min={phase.minPurchase}
-                          max={phase.maxPurchase}
-                        />
-                      </div>
-                      {amount && (
-                        <Alert>
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertTitle>Purchase Summary</AlertTitle>
-                          <AlertDescription>
-                            You will receive {parseFloat(amount).toLocaleString()} MILTON tokens for {(parseFloat(amount) * phase.price).toFixed(2)} USDC
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    </CardContent>
-                    <CardFooter>
-                      <Button
-                        size="lg"
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                        disabled={phase.status !== 'active' || isLoading || !publicKey}
-                        onClick={() => handleTransaction(phase)}
+                <Tabs value={activePhase} onValueChange={setActivePhase} className="space-y-8">
+                  <TabsList className="grid w-full grid-cols-3 gap-4">
+                    {salePhases.map((phase) => (
+                      <TabsTrigger
+                        key={phase.name}
+                        value={phase.name.toLowerCase().replace(' ', '-')}
+                        className="w-full"
                       >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : phase.status === 'active' ? (
-                          'Participate in Sale'
-                        ) : (
-                          'Coming Soon'
-                        )}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </TabsContent>
-              ))}
-            </Tabs>
-          </TabsContent>
+                        {phase.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
 
-          <TabsContent value="calculator">
-            <Card className="w-full">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold">MILTON Token Calculator</CardTitle>
-                <CardDescription>Calculate token amounts, fees, and total costs for SPL and Token-2022 versions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {calculatorError && (
-                  <Alert variant="destructive" className="mb-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{calculatorError}</AlertDescription>
-                  </Alert>
-                )}
-                {isLoading ? (
-                  <div className="flex justify-center items-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  </div>
-                ) : (
-                  <>
-                    <Tabs value={tokenVersion} onValueChange={(value: TokenVersion) => setTokenVersion(value)} className="mb-6">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="spl">SPL Token</TabsTrigger>
-                        <TabsTrigger value="token2022">Token-2022</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="spl" className="mt-4">
-                        <div className="space-y-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor="amount-spl">Amount</Label>
-                            <div className="flex gap-2">
-                              <Input
-                                id="amount-spl"
-                                type="number"
-                                placeholder="Enter amount"
-                                value={amount}
-                                onChange={handleAmountChange}
-                                className="flex-grow"
-                              />
-                              <Select value={inputCurrency} onValueChange={(value: Currency) => setInputCurrency(value)}>
-                                <SelectTrigger className="w-[100px]">
-                                  <SelectValue placeholder="Currency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="USD">USD</SelectItem>
-                                  <SelectItem value="SOL">SOL</SelectItem>
-                                  <SelectItem value="USDC">USDC</SelectItem>
-                                </SelectContent>
-                              </Select>
+                  {salePhases.map((phase) => (
+                    <TabsContent key={phase.name} value={phase.name.toLowerCase().replace(' ', '-')}>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{phase.name}</CardTitle>
+                          <CardDescription>{phase.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Start Date</Label>
+                              <p>{new Date(phase.startDate).toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <Label>End Date</Label>
+                              <p>{new Date(phase.endDate).toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <Label>Price</Label>
+                              <p>{formatNumber(phase.price, 6)} USDC</p>
+                            </div>
+                            <div>
+                              <Label>Total Supply</Label>
+                              <p>{formatNumber(phase.totalSupply)} MILTON</p>
+                            </div>
+                            <div>
+                              <Label>Min Purchase</Label>
+                              <p>{formatNumber(phase.minPurchase)} MILTON</p>
+                            </div>
+                            <div>
+                              <Label>Max Purchase</Label>
+                              <p>{formatNumber(phase.maxPurchase)} MILTON</p>
                             </div>
                           </div>
-                          <div className="grid gap-2">
-                            <Label htmlFor="transaction-type-spl">Transaction Type</Label>
-                            <Select onValueChange={(value: TransactionType) => setTransactionType(value)}>
-                              <SelectTrigger id="transaction-type-spl">
-                                <SelectValue placeholder="Select transaction type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="buy">Buy</SelectItem>
-                                <SelectItem value="sell">Sell</SelectItem>
-                                <SelectItem value="transfer">Transfer</SelectItem>
-                              </SelectContent>
-                            </Select>
+                          <div className="space-y-2">
+                            <Label htmlFor="amount">Amount to Purchase</Label>
+                            <Input
+                              id="amount"
+                              type="number"
+                              placeholder="Enter MILTON amount"
+                              value={amount}
+                              onChange={handleAmountChange}
+                              min={phase.minPurchase}
+                              max={phase.maxPurchase}
+                            />
                           </div>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="token2022" className="mt-4">
-                        <div className="space-y-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor="amount-token2022">Amount</Label>
-                            <div className="flex gap-2">
-                              <Input
-                                id="amount-token2022"
-                                type="number"
-                                placeholder="Enter amount"
-                                value={amount}
-                                onChange={handleAmountChange}
-                                className="flex-grow"
-                              />
-                              <Select value={inputCurrency} onValueChange={(value: Currency) => setInputCurrency(value)}>
-                                <SelectTrigger className="w-[100px]">
-                                  <SelectValue placeholder="Currency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="USD">USD</SelectItem>
-                                  <SelectItem value="SOL">SOL</SelectItem>
-                                  <SelectItem value="USDC">USDC</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Note: Token-2022 version has a flat 5% fee for all transaction types.
-                          </p>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                    <div className="space-y-6">
-                      <div className="p-4 bg-secondary rounded-lg">
-                        <h3 className="font-semibold mb-2">Calculation Results</h3>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span>Output Currency:</span>
-                            <Select value={outputCurrency} onValueChange={(value: Currency) => setOutputCurrency(value)}>
-                              <SelectTrigger className="w-[100px]">
-                                <SelectValue placeholder="Currency" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="USD">USD</SelectItem>
-                                <SelectItem value="SOL">SOL</SelectItem>
-                                <SelectItem value="USDC">USDC</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <p>MILTON Tokens: {miltonAmount.toFixed(6)}</p>
-                          <p>Transaction Fee: {formatCurrency(fee, outputCurrency)} ({(fee / parseFloat(amount) * 100).toFixed(2)}%)</p>
-                          <p className="font-bold">Total Cost: {formatCurrency(totalCost, outputCurrency)}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold mb-2">Fee Allocation Breakdown</h3>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Allocation</TableHead>
-                              <TableHead>Amount</TableHead>
-                              <TableHead>Percentage</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {Object.entries(allocation).map(([key, value]) => (
-                              <TableRow key={key}>
-                                <TableCell className="font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</TableCell>
-                                <TableCell>{formatCurrency(value, outputCurrency)}</TableCell>
-                                <TableCell>{(value / fee * 100).toFixed(2)}%</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                      {transactionType === 'transfer' && (
-                        <div className="mt-4">
+                          {amount && (
+                            <Alert>
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertTitle>Purchase Summary</AlertTitle>
+                              <AlertDescription>
+                                You will receive {formatNumber(parseFloat(amount))} MILTON tokens for {formatNumber(parseFloat(amount) * phase.price, 2)} USDC
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        </CardContent>
+                        <CardFooter>
                           <Button
                             size="lg"
                             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                            onClick={handleTransfer}
-                            disabled={isLoading || !publicKey}
+                            disabled={phase.status !== 'active' || isLoading || !publicKey}
+                            onClick={() => handleTransaction(phase)}
                           >
                             {isLoading ? (
                               <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Processing Transfer...
+                                Processing...
                               </>
+                            ) : phase.status === 'active' ? (
+                              'Participate in Sale'
                             ) : (
-                              'Transfer MILTON Tokens'
+                              'Coming Soon'
                             )}
                           </Button>
+                        </CardFooter>
+                      </Card>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </TabsContent>
+
+              <TabsContent value="calculator">
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle className="text-2xl font-bold">MILTON Token Calculator</CardTitle>
+                    <CardDescription>Calculate token amounts, fees, and total costs for SPL and Token-2022 versions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {calculatorError && (
+                      <Alert variant="destructive" className="mb-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{calculatorError}</AlertDescription>
+                      </Alert>
+                    )}
+                    {isLoading ? (
+                      <div className="flex justify-center items-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                      </div>
+                    ) : (
+                      <>
+                        <Tabs value={tokenVersion} onValueChange={(value: TokenVersion) => setTokenVersion(value)} className="mb-6">
+                          <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="spl">SPL Token</TabsTrigger>
+                            <TabsTrigger value="token2022">Token-2022</TabsTrigger>
+                          </TabsList>
+                          <TabsContent value="spl" className="mt-4">
+                            <div className="space-y-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="amount-spl">Amount</Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    id="amount-spl"
+                                    type="number"
+                                    placeholder="Enter amount"
+                                    value={amount}
+                                    onChange={handleAmountChange}
+                                    className="flex-grow"
+                                  />
+                                  <Select value={inputCurrency} onValueChange={(value: Currency) => setInputCurrency(value)}>
+                                    <SelectTrigger className="w-[100px]">
+                                      <SelectValue placeholder="Currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="USD">USD</SelectItem>
+                                      <SelectItem value="SOL">SOL</SelectItem>
+                                      <SelectItem value="USDC">USDC</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="transaction-type-spl">Transaction Type</Label>
+                                <Select onValueChange={(value: TransactionType) => setTransactionType(value)}>
+                                  <SelectTrigger id="transaction-type-spl">
+                                    <SelectValue placeholder="Select transaction type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="buy">Buy</SelectItem>
+                                    <SelectItem value="sell">Sell</SelectItem>
+                                    <SelectItem value="transfer">Transfer</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </TabsContent>
+                          <TabsContent value="token2022" className="mt-4">
+                            <div className="space-y-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="amount-token2022">Amount</Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    id="amount-token2022"
+                                    type="number"
+                                    placeholder="Enter amount"
+                                    value={amount}
+                                    onChange={handleAmountChange}
+                                    className="flex-grow"
+                                  />
+                                  <Select value={inputCurrency} onValueChange={(value: Currency) => setInputCurrency(value)}>
+                                    <SelectTrigger className="w-[100px]">
+                                      <SelectValue placeholder="Currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="USD">USD</SelectItem>
+                                      <SelectItem value="SOL">SOL</SelectItem>
+                                      <SelectItem value="USDC">USDC</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Note: Token-2022 version has a flat 5% fee for all transaction types.
+                              </p>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
+                        <div className="space-y-6">
+                          <div className="p-4 bg-secondary rounded-lg">
+                            <h3 className="font-semibold mb-2">Calculation Results</h3>
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span>Output Currency:</span>
+                                <Select value={outputCurrency} onValueChange={(value: Currency) => setOutputCurrency(value)}>
+                                  <SelectTrigger className="w-[100px]">
+                                    <SelectValue placeholder="Currency" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="USD">USD</SelectItem>
+                                    <SelectItem value="SOL">SOL</SelectItem>
+                                    <SelectItem value="USDC">USDC</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <p>MILTON Tokens: {formatNumber(miltonAmount, 6)}</p>
+                              <p>Transaction Fee: {formatCurrency(fee, outputCurrency)} ({formatNumber(fee / parseFloat(amount || '0') * 100, 2)}%)</p>
+                              <p className="font-bold">Total Cost: {formatCurrency(totalCost, outputCurrency)}</p>
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold mb-2">Fee Allocation Breakdown</h3>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Allocation</TableHead>
+                                  <TableHead>Amount</TableHead>
+                                  <TableHead>Percentage</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {Object.entries(allocation).map(([key, value]) => (
+                                  <TableRow key={key}>
+                                    <TableCell className="font-medium">
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span className="cursor-help flex items-center">
+                                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                              <Info className="h-4 w-4 ml-1" />
+                                            </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Explanation for {key} allocation</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </TableCell>
+                                    <TableCell>{formatCurrency(value, outputCurrency)}</TableCell>
+                                    <TableCell>{formatNumber(value / fee * 100, 2)}%</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                          {transactionType === 'transfer' && (
+                            <div className="mt-4">
+                              <Button
+                                size="lg"
+                                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                                onClick={handleTransfer}
+                                disabled={isLoading || !publicKey}
+                              >
+                                {isLoading ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing Transfer...
+                                  </>
+                                ) : (
+                                  'Transfer MILTON Tokens'
+                                )}
+                              </Button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </motion.div>
+          </AnimatePresence>
         </Tabs>
       </div>
     </section>

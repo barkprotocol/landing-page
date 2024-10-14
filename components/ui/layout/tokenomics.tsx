@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,6 +15,7 @@ import Link from 'next/link'
 import TokenSales from "@/components/ui/milton/token-sale-calculator"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title)
 
@@ -52,28 +53,6 @@ const tokenUtility = [
   { title: 'Charitable Donations', description: 'Make donations to verified global causes with MILTON', icon: Gift },
 ]
 
-const emissionSchedule = {
-  labels: ['Initial', 'Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
-  datasets: [
-    {
-      label: 'Circulating Supply',
-      data: [7378400000, 10132800000, 12887200000, 14720000000, 16552800000, 18446000000],
-      borderColor: '#64748b',
-      backgroundColor: 'rgba(100, 116, 139, 0.2)',
-      tension: 0.1,
-      fill: true,
-    },
-    {
-      label: 'Max Supply',
-      data: [18446000000, 18446000000, 18446000000, 18446000000, 18446000000, 18446000000],
-      borderColor: '#94a3b8',
-      backgroundColor: 'rgba(148, 163, 184, 0.2)',
-      tension: 0.1,
-      fill: true,
-    }
-  ],
-}
-
 const tokenDetails = [
   { attribute: 'Token Name', value: 'MILTON' },
   { attribute: 'Token Symbol', value: 'MILTON' },
@@ -98,6 +77,25 @@ export default function Tokenomics() {
   const [tokenMetrics, setTokenMetrics] = useState(initialTokenMetrics)
   const [currentPrice, setCurrentPrice] = useState(0.00001)
   const [circulatingSupply, setCirculatingSupply] = useState(7378400000)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTokenData = async () => {
+      setIsLoading(true)
+      try {
+        // Simulating API call with setTimeout
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        setCurrentPrice(0.000015)
+        setCirculatingSupply(7500000000)
+      } catch (error) {
+        console.error('Failed to fetch token data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTokenData()
+  }, [])
 
   useEffect(() => {
     updateMetrics()
@@ -117,11 +115,32 @@ export default function Tokenomics() {
     { id: 'metrics', label: 'Metrics', icon: BarChart },
     { id: 'utility', label: 'Utility', icon: Lightbulb },
     { id: 'emission', label: 'Emission', icon: TrendingUp },
-    { id: 'dex', label: 'DEX', icon: LayoutGrid },
-    { id: 'token-sale', label: 'Token Sale', icon: Banknote },
+    { id: 'dex', label: 'Market', icon: LayoutGrid },
+    { id: 'token-sale', label: 'Token Sale & Calculator', icon: Banknote },
     { id: 'buy', label: 'Buy', icon: ShoppingCart },
-    { id: 'calculator', label: 'Calculator', icon: Calculator },
   ]
+
+  const memoizedEmissionSchedule = useMemo(() => ({
+    labels: ['Initial', 'Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+    datasets: [
+      {
+        label: 'Circulating Supply',
+        data: [circulatingSupply, 10132800000, 12887200000, 14720000000, 16552800000, 18446000000],
+        borderColor: '#64748b',
+        backgroundColor: 'rgba(100, 116, 139, 0.2)',
+        tension: 0.1,
+        fill: true,
+      },
+      {
+        label: 'Max Supply',
+        data: [18446000000, 18446000000, 18446000000, 18446000000, 18446000000, 18446000000],
+        borderColor: '#94a3b8',
+        backgroundColor: 'rgba(148, 163, 184, 0.2)',
+        tension: 0.1,
+        fill: true,
+      }
+    ],
+  }), [circulatingSupply])
 
   return (
     <section id="tokenomics" className="py-12 sm:py-24 bg-gradient-to-b from-background to-secondary/20">
@@ -138,7 +157,7 @@ export default function Tokenomics() {
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 flex items-center justify-center">
-            Information
+            MILTON Token Information
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
             Explore the tokenomics and key information about MILTON, the meme-powered token on Solana
@@ -146,21 +165,22 @@ export default function Tokenomics() {
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <div className="flex justify-center">
-            <TabsList className="inline-flex h-auto items-center justify-center rounded-md bg-secondary p-1 text-secondary-foreground w-full max-w-6xl overflow-x-auto flex-wrap">
-              {tabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 sm:px-6 sm:py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1 m-1"
-                >
-                  <tab.icon className="mr-2 h-4 w-4" />
-                  {tab.label}
-                  {tab.id === 'buy' && <ChevronRight className="ml-1 h-3 w-3 sm:h-4 sm:w-4" />}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+          <Card className="w-full max-w-6xl mx-auto">
+            <CardContent className="p-1 sm:p-2">
+              <TabsList className="w-full justify-between bg-transparent">
+                {tabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="flex-1 data-[state=active]:bg-secondary"
+                  >
+                    <tab.icon className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </CardContent>
+          </Card>
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -229,6 +249,7 @@ export default function Tokenomics() {
               </TabsContent>
 
               <TabsContent value="allocation" className="space-y-8">
+                
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl  sm:text-2xl">Allocation</CardTitle>
@@ -294,13 +315,23 @@ export default function Tokenomics() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                      {tokenMetrics.map((metric, index) => (
-                        <div key={index} className="space-y-2 bg-secondary/50 p-4 rounded-lg">
-                          <h3 className="text-base sm:text-lg font-semibold">{metric.label}</h3>
-                          <p className="text-xl sm:text-2xl font-bold text-primary">{metric.value}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">{metric.description}</p>
-                        </div>
-                      ))}
+                      {isLoading ? (
+                        Array(6).fill(0).map((_, index) => (
+                          <div key={index} className="space-y-2 bg-secondary/50 p-4 rounded-lg">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-3 w-5/6" />
+                          </div>
+                        ))
+                      ) : (
+                        tokenMetrics.map((metric, index) => (
+                          <div key={index} className="space-y-2 bg-secondary/50 p-4 rounded-lg">
+                            <h3 className="text-base sm:text-lg font-semibold">{metric.label}</h3>
+                            <p className="text-xl sm:text-2xl font-bold text-primary">{metric.value}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">{metric.description}</p>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -360,7 +391,7 @@ export default function Tokenomics() {
                           }}
                         >
                           <Line 
-                            data={emissionSchedule} 
+                            data={memoizedEmissionSchedule} 
                             options={{
                               responsive: true,
                               maintainAspectRatio: false,
@@ -380,7 +411,7 @@ export default function Tokenomics() {
                                       size: 10
                                     },
                                     callback: function(value) {
-                                      return value.toLocaleString() + ' M';
+                                      return (value / 1000000).toLocaleString() + ' M';
                                     }
                                   }
                                 },
@@ -454,12 +485,12 @@ export default function Tokenomics() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {emissionSchedule.labels.map((year, index) => (
+                          {memoizedEmissionSchedule.labels.map((year, index) => (
                             <TableRow key={year}>
                               <TableCell className="text-sm sm:text-base">{year}</TableCell>
-                              <TableCell className="text-sm sm:text-base font-medium">{(emissionSchedule.datasets[0].data[index] / 1000000).toFixed(2) + ' M'}</TableCell>
+                              <TableCell className="text-sm sm:text-base font-medium">{(memoizedEmissionSchedule.datasets[0].data[index] / 1000000).toFixed(2) + ' M'}</TableCell>
                               <TableCell className="text-sm sm:text-base">
-                                {((emissionSchedule.datasets[0].data[index] / 18446000000) * 100).toFixed(2)}%
+                                {((memoizedEmissionSchedule.datasets[0].data[index] / 18446000000) * 100).toFixed(2)}%
                               </TableCell>
                             </TableRow>
                           ))}
@@ -561,49 +592,6 @@ export default function Tokenomics() {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="calculator" className="space-y-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-xl sm:text-2xl">MILTON Token Calculator</CardTitle>
-                    <CardDescription>Calculate token metrics based on current price and circulating supply</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="current-price">Current Price ($)</Label>
-                          <Input
-                            id="current-price"
-                            type="number"
-                            value={currentPrice}
-                            onChange={(e) => setCurrentPrice(parseFloat(e.target.value))}
-                            step="0.00000001"
-                            min="0"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="circulating-supply">Circulating Supply</Label>
-                          <Input
-                            id="circulating-supply"
-                            type="number"
-                            value={circulatingSupply}
-                            onChange={(e) => setCirculatingSupply(parseInt(e.target.value))}
-                            step="1"
-                            min="0"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid gap-2 bg-secondary/50 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold">Calculated Metrics</h3>
-                        <p>Market Cap: ${(currentPrice * circulatingSupply).toLocaleString()}</p>
-                        <p>Fully Diluted Market Cap: ${(currentPrice * 18446000000).toLocaleString()}</p>
-                        <p>Circulating Supply: {circulatingSupply.toLocaleString()} MILTON</p>
-                        <p>% of Max Supply: {((circulatingSupply / 18446000000) * 100).toFixed(2)}%</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </motion.div>
           </AnimatePresence>
         </Tabs>

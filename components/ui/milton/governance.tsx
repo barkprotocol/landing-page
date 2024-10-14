@@ -1,127 +1,124 @@
-'use client'
-
 import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Gavel, Users, VoteIcon, PlusCircle } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Search, VoteIcon, Users, BarChart } from 'lucide-react'
 
-// Note: This is a mock function. In a real application, you would integrate with Solana Realm SDK
-const mockSubmitProposal = async (title: string, description: string) => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  return { success: true, message: 'Proposal submitted successfully' }
-}
+const proposalsData = [
+  { id: 1, title: 'Increase staking rewards', description: 'Proposal to increase staking rewards from 5% to 7% APY', status: 'Active', votes: { for: 1500000, against: 500000 } },
+  { id: 2, title: 'Add new liquidity pool', description: 'Add MILTON/ETH liquidity pool on major DEX', status: 'Passed', votes: { for: 2000000, against: 300000 } },
+  { id: 3, title: 'Reduce transaction fees', description: 'Reduce platform transaction fees from 0.1% to 0.05%', status: 'Failed', votes: { for: 800000, against: 1200000 } },
+  { id: 4, title: 'Launch mobile app', description: 'Allocate funds for developing a MILTON mobile app', status: 'Pending', votes: { for: 0, against: 0 } },
+]
 
 export function Governance() {
-  const [activeTab, setActiveTab] = useState('proposals')
-  const [proposalTitle, setProposalTitle] = useState('')
-  const [proposalDescription, setProposalDescription] = useState('')
-  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filteredProposals, setFilteredProposals] = useState(proposalsData)
 
-  const handleSubmitProposal = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const result = await mockSubmitProposal(proposalTitle, proposalDescription)
-      if (result.success) {
-        setSubmitMessage({ type: 'success', text: result.message })
-        setProposalTitle('')
-        setProposalDescription('')
-      }
-    } catch (error) {
-      setSubmitMessage({ type: 'error', text: 'Failed to submit proposal. Please try again.' })
-    }
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const term = event.target.value.toLowerCase()
+    setSearchTerm(term)
+    const filtered = proposalsData.filter(proposal => 
+      proposal.title.toLowerCase().includes(term) ||
+      proposal.description.toLowerCase().includes(term)
+    )
+    setFilteredProposals(filtered)
   }
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-xl sm:text-2xl flex items-center">
-          <Gavel className="mr-2 h-6 w-6" />
-          MILTON Governance
-        </CardTitle>
-        <CardDescription>Participate in the decision-making process for the MILTON ecosystem</CardDescription>
+        <CardTitle className="text-2xl font-bold">MILTON Governance</CardTitle>
+        <CardDescription>Participate in shaping the future of MILTON</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
-            <TabsTrigger value="proposals">Active Proposals</TabsTrigger>
-            <TabsTrigger value="create">Create Proposal</TabsTrigger>
-            <TabsTrigger value="vote">Vote</TabsTrigger>
-          </TabsList>
-          <TabsContent value="proposals">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Current Active Proposals</h3>
-              <ul className="space-y-2">
-                <li className="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
-                  <span>Proposal 1: Increase staking rewards</span>
-                  <Button variant="outline" size="sm">View Details</Button>
-                </li>
-                <li className="flex items-center justify-between p-2 bg-secondary/50 rounded-lg">
-                  <span>Proposal 2: Add new meme contest category</span>
-                  <Button variant="outline" size="sm">View Details</Button>
-                </li>
-              </ul>
-            </div>
-          </TabsContent>
-          <TabsContent value="create">
-            <form onSubmit={handleSubmitProposal} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="proposal-title">Proposal Title</Label>
-                <Input
-                  id="proposal-title"
-                  value={proposalTitle}
-                  onChange={(e) => setProposalTitle(e.target.value)}
-                  placeholder="Enter proposal title"
-                  required
-                />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-2">
+                <VoteIcon className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold">Active Proposals</h3>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="proposal-description">Proposal Description</Label>
-                <textarea
-                  id="proposal-description"
-                  value={proposalDescription}
-                  onChange={(e) => setProposalDescription(e.target.value)}
-                  placeholder="Describe your proposal"
-                  className="w-full min-h-[100px] p-2 rounded-md border border-input bg-background"
-                  required
-                />
+              <p className="text-2xl font-bold">2</p>
+              <p className="text-sm text-muted-foreground">Open for voting</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold">Total Participants</h3>
               </div>
-              <Button type="submit" className="w-full">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Submit Proposal
-              </Button>
-            </form>
-            {submitMessage && (
-              <Alert className={`mt-4 ${submitMessage.type === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>
-                <AlertTitle>{submitMessage.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
-                <AlertDescription>{submitMessage.text}</AlertDescription>
-              </Alert>
-            )}
-          </TabsContent>
-          <TabsContent value="vote">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Cast Your Vote</h3>
-              <p className="text-sm text-muted-foreground">Connect your wallet to view and vote on active proposals.</p>
-              <Button className="w-full">
-                <Users className="mr-2 h-4 w-4" />
-                Connect Wallet
-              </Button>
-              <div className="p-4 bg-secondary/50 rounded-lg">
-                <h4 className="font-medium mb-2">How Voting Works</h4>
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>Each MILTON token represents one vote</li>
-                  <li>Proposals require a majority to pass</li>
-                  <li>Voting period lasts for 7 days</li>
-                  <li>Results are executed automatically via smart contract</li>
-                </ul>
+              <p className="text-2xl font-bold">15,423</p>
+              <p className="text-sm text-muted-foreground">Unique voters</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-2">
+                <BarChart className="w-4 h-4 text-primary" />
+                <h3  className="font-semibold">Voting Power</h3>
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+              <p className="text-2xl font-bold">5,000,000 MILTON</p>
+              <p className="text-sm text-muted-foreground">Total staked for voting</p>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="mb-4">
+          <Label htmlFor="search">Search Proposals</Label>
+          <div className="flex w-full max-w-sm items-center space-x-2">
+            <Input
+              id="search"
+              type="text"
+              placeholder="Search by title or description"
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+            <Button type="submit" size="icon">
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Votes For</TableHead>
+              <TableHead>Votes Against</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredProposals.map((proposal) => (
+              <TableRow key={proposal.id}>
+                <TableCell>{proposal.id}</TableCell>
+                <TableCell className="font-medium">{proposal.title}</TableCell>
+                <TableCell>{proposal.description}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      proposal.status === 'Active' ? 'default' :
+                      proposal.status === 'Passed' ? 'success' :
+                      proposal.status === 'Failed' ? 'destructive' : 'secondary'
+                    }
+                  >
+                    {proposal.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>{proposal.votes.for.toLocaleString()}</TableCell>
+                <TableCell>{proposal.votes.against.toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {filteredProposals.length === 0 && (
+          <p className="text-center text-muted-foreground mt-4">No proposals found matching your search.</p>
+        )}
       </CardContent>
     </Card>
   )
