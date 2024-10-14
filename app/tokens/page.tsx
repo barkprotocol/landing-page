@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletButton } from '@/components/ui/wallet-button'
-import Preview from "@/components/preview"
+import Preview from "@/components/preview/page"
 import {
   PublicKey,
   Transaction,
@@ -11,7 +11,6 @@ import {
   LAMPORTS_PER_SOL,
   Connection
 } from '@solana/web3.js'
-import { FaInfoCircle } from 'react-icons/fa'
 import LoadingScreen from '@/components/ui/loading'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
