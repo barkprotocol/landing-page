@@ -2,8 +2,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Zap, Gift, Sparkles } from 'lucide-react'
+import { FC } from 'react'
 
-const SwapIcon = (props) => (
+interface IconProps {
+  className?: string
+}
+
+const SwapIcon: FC<IconProps> = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -23,7 +28,13 @@ const SwapIcon = (props) => (
   </svg>
 )
 
-const featuresData = [
+interface Feature {
+  name: string
+  description: string
+  icon: FC<IconProps>
+}
+
+const featuresData: Feature[] = [
   { name: 'Quick Blink', description: 'Send tokens instantly', icon: Zap },
   { name: 'Rewards', description: 'Earn while you hold', icon: Gift },
   { name: 'Staking', description: 'Grow your assets', icon: Sparkles },
@@ -42,6 +53,7 @@ export function MiltonFeatures() {
           {featuresData.map((feature) => (
             <Card key={feature.name}>
               <CardContent className="flex flex-col items-center p-6">
+                {/* Dynamically rendering the icon component */}
                 <feature.icon className="h-12 w-12 mb-4 text-primary" />
                 <h3 className="text-lg font-semibold mb-2">{feature.name}</h3>
                 <p className="text-sm text-center text-muted-foreground">{feature.description}</p>

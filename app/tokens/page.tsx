@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useRef, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletButton } from '@/components/ui/wallet-button'
@@ -19,6 +17,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
+
+interface PreviewProps {
+  icon: string;
+  label: string;
+  description: string;
+  title: string;
+}
 
 export default function TokenPage() {
   const { publicKey, connected, sendTransaction } = useWallet()
@@ -276,48 +281,39 @@ export default function TokenPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Description"
-                    maxLength={143}
+                    maxLength={100}
                   />
                 </div>
               </div>
             )}
-            {blinkLink && !showForm && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Your Blink Link:</h2>
-                <div className="p-2 bg-secondary rounded">
-                  <a href={`https://dial.to/?action=solana-action:${blinkLink}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                    https://dial.to/?action=solana-action:{blinkLink}
-                  </a>
-                </div>
-                <div className="flex space-x-2">
-                  <Button onClick={handleCopy}>{copied ? "Copied!" : "Copy"}</Button>
-                  <Button onClick={handleTweet}>Tweet</Button>
-                  <Button onClick={handleNew}>Create New</Button>
-                </div>
-              </div>
-            )}
           </CardContent>
-          <CardFooter>
-            {showForm && publicKey ? (
-              <Button onClick={showPreview ? handlePreview : handleSubmit} disabled={!connected}>
-                {showPreview ? 'Preview Blink' : 'Generate Blink'}
-              </Button>
-            ) : (
-              showForm && <WalletButton />
-            )}
+          <CardFooter className="space-x-2">
+            <Button onClick={handleSubmit} disabled={loading}>
+              Submit
+            </Button>
+            <Button variant="secondary" onClick={handlePreview} disabled={loading}>
+              Preview
+            </Button>
           </CardFooter>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Blink Preview</CardTitle>
+            <CardTitle>Preview Your Blink</CardTitle>
           </CardHeader>
           <CardContent>
-            <Preview
-              icon={icon || 'https://ucarecdn.com/7b8bfa84-f61c-4b13-9d81-68b1cfa9a9b2/miltoncard1.svg'}
-              label={label || 'Your Label'}
-              description={description || 'Your Description shows up here, Keep it short and simple'}
-              title={title || "Your Title : )"}
-            />
+            {showPreview ? (
+              <div>
+                {/* You can conditionally show placeholder text here */}
+                <p className="text-gray-500">Fill out the form to preview your Blink.</p>
+              </div>
+            ) : (
+              <Preview
+                icon={icon || 'https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg'}
+                label={label || 'Your Label'}
+                description={description || 'Your Description shows up here, Keep it short and simple'}
+                title={title || "Your Title : )"}
+              />
+            )}
           </CardContent>
         </Card>
       </div>
