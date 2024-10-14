@@ -1,26 +1,33 @@
-import { eq, lt } from 'drizzle-orm';
-import { db } from './drizzle';
-import { sessions } from './schema';
+import { SignJWT, jwtVerify } from 'jose';
+import { NextRequest } from 'next/server';
 
-export async function createSession(userId: number, token: string, expiresAt: Date) {
-  await db.insert(sessions).values({ userId, token, expiresAt });
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not set in the environment variables');
 }
 
-export async function getSession(token: string) {
-  const [session] = await db
-    .select()
-    .from(sessions)
-    .where(eq(sessions.token, token))
-    .limit(1);
+export async function signToken(payload: { userId: string }): Promise<string> {
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + 60 * 60; // 1 hour expiration
 
-  return session;
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setExpirationTime(exp)
+    .setIssuedAt(iat)
+    .setNotBefore(iat)
+    .sign(new TextEncoder().encode(JWT_SECRET));
 }
 
-export async function deleteSession(token: string) {
-  await db.delete(sessions).where(eq(sessions.token, token));
+export async function verifyToken(token: string): Promise<{ userId: string }> {
+  const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+  return payload as { userId: string };
 }
 
-export async function deleteExpiredSessions() {
-  const now = new Date(); // Get the current date and time
-  await db.delete(sessions).where(lt(sessions.expiresAt, now)); // Delete sessions where expiresAt is less than now
+export function getTokenFromRequest(req: NextRequest): string | null {
+  const authHeader = req.headers.get('authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1];
+  }
+  return null;
 }
