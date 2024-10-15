@@ -94,7 +94,7 @@ export function Hero() {
                 </motion.div>
               )}
             </AnimatePresence>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl mb-4 text-shadow-sm">
+            <h1 className="text-4xl font-bold text-[#ffe288] tracking-tight sm:text-5xl md:text-6xl mb-4 text-shadow-sm">
               Welcome to Milton
               <span className="block text-[#FFECB1] mt-2 text-shadow-sm">The Storm of Solana</span>
             </h1>
