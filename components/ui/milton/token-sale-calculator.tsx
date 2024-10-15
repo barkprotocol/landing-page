@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, Token } from '@solana/spl-token'
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from '@solana/spl-token'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -139,52 +139,55 @@ export default function TokenSaleCalculator() {
   const [usdcPrice, setUsdcPrice] = useState<number>(0)
   const [calculatorError, setCalculatorError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchSaleData = async () => {
-      try {
-        // Replace this with actual API call to fetch sale progress
-        const response = await fetch('/api/v1/sale-progress')
-        const data = await response.json()
-        setSaleProgress(data.progress)
-      } catch (error) {
-        console.error('Error fetching sale progress:', error)
-        toast({
-          title: "Error",
-          description: "Failed to fetch sale progress. Please try again later.",
-          variant: "destructive",
-        })
+  const fetchSaleData = useCallback(async () => {
+    try {
+      const response = await fetch('/api/v1/sale-progress')
+      if (!response.ok) {
+        throw new Error('Failed to fetch sale progress')
       }
+      const data = await response.json()
+      setSaleProgress(data.progress)
+    } catch (error) {
+      console.error('Error fetching sale progress:', error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch sale progress. Please try again later.",
+        variant: "destructive",
+      })
     }
+  }, [toast])
 
-    const fetchPrices = async () => {
-      setIsLoading(true)
-      setCalculatorError(null)
-      try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana,usd-coin&vs_currencies=usd')
-        if (!response.ok) {
-          throw new Error('Failed to fetch prices')
-        }
-        const data = await response.json()
-        setSolPrice(data.solana.usd)
-        setUsdcPrice(data['usd-coin'].usd)
-      } catch (error) {
-        console.error('Error fetching prices:', error)
-        setCalculatorError('Failed to fetch current prices. Please try again later.')
-      } finally {
-        setIsLoading(false)
+  const fetchPrices = useCallback(async () => {
+    setIsLoading(true)
+    setCalculatorError(null)
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana,usd-coin&vs_currencies=usd')
+      if (!response.ok) {
+        throw new Error('Failed to fetch prices')
       }
+      const data = await response.json()
+      setSolPrice(data.solana.usd)
+      setUsdcPrice(data['usd-coin'].usd)
+    } catch (error) {
+      console.error('Error fetching prices:', error)
+      setCalculatorError('Failed to fetch current prices. Please try again later.')
+    } finally {
+      setIsLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    fetchSaleData()
+    fetchPrices()
 
     const saleInterval = setInterval(fetchSaleData, 30000)
     const priceInterval = setInterval(fetchPrices, 60000)
-    fetchSaleData()
-    fetchPrices()
 
     return () => {
       clearInterval(saleInterval)
       clearInterval(priceInterval)
     }
-  }, [toast])
+  }, [fetchSaleData, fetchPrices])
 
   const calculateResults = useMemo(() => {
     if (isLoading || calculatorError || !amount) return null
@@ -299,9 +302,7 @@ export default function TokenSaleCalculator() {
       const transaction = new Transaction()
 
       // Create associated token account for the user if it doesn't exist
-      const userAssociatedTokenAccount = await Token.getAssociatedTokenAddress(
-        ASSOCIATED_TOKEN_PROGRAM_ID,
-        TOKEN_PROGRAM_ID,
+      const userAssociatedTokenAccount = await getAssociatedTokenAddress(
         MILTON_MINT,
         publicKey
       )
@@ -309,13 +310,11 @@ export default function TokenSaleCalculator() {
       const accountInfo = await connection.getAccountInfo(userAssociatedTokenAccount)
       if (!accountInfo) {
         transaction.add(
-          Token.createAssociatedTokenAccountInstruction(
-            ASSOCIATED_TOKEN_PROGRAM_ID,
-            TOKEN_PROGRAM_ID,
-            MILTON_MINT,
+          createAssociatedTokenAccountInstruction(
+            publicKey,
             userAssociatedTokenAccount,
             publicKey,
-            publicKey
+            MILTON_MINT
           )
         )
       }
@@ -323,12 +322,10 @@ export default function TokenSaleCalculator() {
       // Add transfer instruction
       const miltonAmount = tokenAmount * Math.pow(10, MILTON_DECIMALS)
       transaction.add(
-        Token.createTransferInstruction(
-          TOKEN_PROGRAM_ID,
+        createTransferInstruction(
           MILTON_MINT, // From the mint (assuming the sale contract controls minting)
           userAssociatedTokenAccount,
           publicKey,
-          [],
           miltonAmount
         )
       )
@@ -402,9 +399,7 @@ export default function TokenSaleCalculator() {
       const transaction = new Transaction()
 
       // Get the user's associated token account
-      const userAssociatedTokenAccount = await Token.getAssociatedTokenAddress(
-        ASSOCIATED_TOKEN_PROGRAM_ID,
-        TOKEN_PROGRAM_ID,
+      const userAssociatedTokenAccount = await getAssociatedTokenAddress(
         MILTON_MINT,
         publicKey
       )
@@ -412,12 +407,10 @@ export default function TokenSaleCalculator() {
       // Add transfer instruction
       const miltonAmount = parseFloat(amount) * Math.pow(10, MILTON_DECIMALS)
       transaction.add(
-        Token.createTransferInstruction(
-          TOKEN_PROGRAM_ID,
+        createTransferInstruction(
           userAssociatedTokenAccount,
           userAssociatedTokenAccount, // Replace with the recipient's token account
           publicKey,
-          [],
           miltonAmount
         )
       )

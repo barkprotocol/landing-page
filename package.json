@@ -1,7 +1,7 @@
 {
   "name": "milton-webapp",
   "description": "The Storm of Solana: Brace Yourself for the Fastest, Innovative, and Most Chaotic Token on the Blockchain!",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "scripts": {

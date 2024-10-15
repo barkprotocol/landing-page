@@ -21,7 +21,7 @@ const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
 // Constants for SPL tokens, USDC, and MILTON Token addresses.
 const USDC_MINT_ADDRESS = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
-const MILTON_MINT_ADDRESS = new PublicKey('MLTNkHBP4bZKQVeKL8yCXSjxMhGNKPVNBGVJiGCTGwN');
+const MILTON_MINT_ADDRESS = new PublicKey('');
 
 /**
  * Creates a new Solana wallet.
