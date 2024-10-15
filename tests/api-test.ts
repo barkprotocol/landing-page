@@ -1,4 +1,4 @@
-import { GET, POST } from '../api/v1/endpoint';
+import { GET, POST } from '../app/api/v1/endpoint';
 import { createMocks } from 'node-mocks-http';
 
 describe('API Tests', () => {

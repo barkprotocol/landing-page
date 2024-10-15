@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { createUser, getUser, updateUser, deleteUser } from './userController';
+import { createUser, getUser, updateUser, deleteUser } from './user-controller';
 
 const router = express.Router();
 

@@ -1,10 +1,12 @@
 import { Cluster, clusterApiUrl, PublicKey } from '@solana/web3.js';
 
 // Determine the network to connect to
-export const SOLANA_NETWORK = (process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet') as Cluster;
+export const SOLANA_NETWORK: Cluster = 
+  (process.env.NEXT_PUBLIC_SOLANA_NETWORK as Cluster) || 'devnet';
 
 // RPC Endpoint
-export const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || clusterApiUrl(SOLANA_NETWORK);
+export const SOLANA_RPC_ENDPOINT = 
+  process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || clusterApiUrl(SOLANA_NETWORK);
 
 // Milton token mint address
 export const MILTON_MINT = new PublicKey('4DsZctdxSVNLGYB5YtY8A8JDg6tUoSZnQHSamXecKWWf');
@@ -12,7 +14,7 @@ export const MILTON_MINT = new PublicKey('4DsZctdxSVNLGYB5YtY8A8JDg6tUoSZnQHSamX
 // USDC token mint address (this is the devnet address, replace with mainnet address when going live)
 export const USDC_MINT = new PublicKey('Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr');
 
-// Your program ID
+// Milton program ID
 export const PROGRAM_ID = new PublicKey('YourProgramIdHere');
 
 // Constants for your program
@@ -37,8 +39,13 @@ export const MILTON_PRICE_FEED = 'milton_usdc';
 export const SOL_PRICE_FEED = 'sol_usdc';
 
 // Function to get the explorer URL for a given address or transaction
-export function getExplorerUrl(addressOrSignature: string, type: 'address' | 'tx' = 'address'): string {
+export function getExplorerUrl(
+  addressOrSignature: string, 
+  type: 'address' | 'tx' = 'address'
+): string {
   let baseUrl: string;
+
+  // Determine base URL based on the network
   switch (SOLANA_NETWORK) {
     case 'mainnet-beta':
       baseUrl = 'https://explorer.solana.com';
@@ -52,6 +59,7 @@ export function getExplorerUrl(addressOrSignature: string, type: 'address' | 'tx
     default:
       throw new Error(`Unsupported network: ${SOLANA_NETWORK}`);
   }
+
   return `${baseUrl}/${type}/${addressOrSignature}`;
 }
 
@@ -77,3 +85,12 @@ export const CONNECTION_CONFIG = {
   disableRetryOnRateLimit: true,
   confirmTransactionInitialTimeout: TRANSACTION_TIMEOUT,
 };
+
+// Validate environment variables
+if (!process.env.NEXT_PUBLIC_SOLANA_NETWORK) {
+  console.warn('Using default Solana network: devnet');
+}
+
+if (!process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT) {
+  console.warn('Using default RPC endpoint: ' + SOLANA_RPC_ENDPOINT);
+}

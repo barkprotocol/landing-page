@@ -1,80 +1,41 @@
-import express, { Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
-import { createProposal, voteOnProposal } from '@/components/ui/milton/governance'; 
-import { logError } from '../../../errors/error-logger'; 
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { PublicKey } from '@solana/web3.js';
+import { processGovernanceAction } from '@/lib/governance/actions';
 
-const router = express.Router();
-
-// Create Proposal Endpoint
-router.post(
-  '/proposals',
-  [
-    body('title').isString().withMessage('Title is required'),
-    body('description').isString().withMessage('Description is required'),
-    body('proposer').isString().withMessage('Proposer address is required'),
-  ],
-  async (req: Request, res: Response) => {
-    // Validate request
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
-    const { title, description, proposer } = req.body;
-
+// Define a schema for validating incoming requests
+const governanceActionSchema = z.object({
+  actionType: z.enum(['vote', 'propose']),
+  proposalId: z.string().min(1),
+  publicKey: z.string().refine((key) => {
     try {
-      // Call the governance service to create a proposal
-      const result = await createProposal(title, description, proposer);
-      return res.status(201).json({ success: true, data: result });
-    } catch (error: unknown) {
-      // Type guard for Error
-      if (error instanceof Error) {
-        logError(error); // logError expects an instance of Error
-        return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-      } else {
-        // If the error is not an instance of Error, handle it as unknown
-        const message = typeof error === 'string' ? error : 'An unknown error occurred.';
-        logError(new Error(message)); // Wrap the message in an Error object
-        return res.status(500).json({ success: false, message: 'Internal Server Error', error: message });
-      }
+      new PublicKey(key); // Validate the public key
+      return true;
+    } catch {
+      return false;
     }
+  }),
+  data: z.object({}), // You can customize this based on your action type
+});
+
+// Handle POST requests for governance actions
+export async function POST(request: Request) {
+  try {
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validatedData = governanceActionSchema.parse(requestBody);
+
+    const { actionType, proposalId, publicKey, data } = validatedData;
+
+    // Process the governance action
+    const result = await processGovernanceAction(actionType, proposalId, publicKey, data);
+
+    return NextResponse.json({ success: true, result });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ success: false, message: 'Validation error', errors: error.errors }, { status: 400 });
+    }
+    console.error('Error processing governance action:', error);
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
-);
-
-// Vote on Proposal Endpoint
-router.post(
-  '/proposals/:id/vote',
-  [
-    body('voter').isString().withMessage('Voter address is required'),
-    body('voteType').isIn(['yes', 'no']).withMessage('Vote type must be yes or no'),
-  ],
-  async (req: Request, res: Response) => {
-    // Validate request
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
-    const { id } = req.params;
-    const { voter, voteType } = req.body;
-
-    try {
-      // Call the governance service to vote on a proposal
-      const result = await voteOnProposal(id, voter, voteType);
-      return res.status(200).json({ success: true, data: result });
-    } catch (error: unknown) {
-      // Type guard for Error
-      if (error instanceof Error) {
-        logError(error); // logError expects an instance of Error
-        return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-      } else {
-        // If the error is not an instance of Error, handle it as unknown
-        const message = typeof error === 'string' ? error : 'An unknown error occurred.';
-        logError(new Error(message)); // Wrap the message in an Error object
-        return res.status(500).json({ success: false, message: 'Internal Server Error', error: message });
-      }
-    }
-  }
-);
-
-export default router;
+}

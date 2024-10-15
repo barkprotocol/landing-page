@@ -20,6 +20,15 @@ export function MiltonServices() {
   const [blinkExpiration, setBlinkExpiration] = useState('')
   const [blinkMaxUses, setBlinkMaxUses] = useState('')
 
+  const validateRecipientAddress = (address: string) => {
+    try {
+      new PublicKey(address); // Will throw an error if invalid
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   const handleCreateBlink = async () => {
     try {
       if (!blinkLabel || !blinkDescription || !amount || !blinkExpiration || !blinkMaxUses) {
@@ -53,8 +62,8 @@ export function MiltonServices() {
 
   const handleSendTokens = async () => {
     try {
-      if (!recipientAddress || !amount) {
-        throw new Error('Please provide a recipient address and amount.')
+      if (!recipientAddress || !amount || !validateRecipientAddress(recipientAddress)) {
+        throw new Error('Please provide a valid recipient address and amount.')
       }
 
       const amountLamports = parseInt(amount) * 1e9 // Convert SOL to lamports
@@ -81,8 +90,8 @@ export function MiltonServices() {
 
   const handleMakeDonation = async () => {
     try {
-      if (!recipientAddress || !amount) {
-        throw new Error('Please provide a recipient address and amount for donation.')
+      if (!recipientAddress || !amount || !validateRecipientAddress(recipientAddress)) {
+        throw new Error('Please provide a valid recipient address and amount for donation.')
       }
 
       const amountLamports = parseInt(amount) * 1e9 // Convert SOL to lamports
@@ -102,6 +111,24 @@ export function MiltonServices() {
         description: `Error: ${error.message}`,
         variant: "destructive",
       })
+    }
+  }
+
+  const handleSubmit = () => {
+    const activeTab = document.querySelector('[role="tabpanel"][data-state="active"]')?.id;
+
+    switch (activeTab) {
+      case 'send':
+        handleSendTokens()
+        break;
+      case 'blink':
+        handleCreateBlink()
+        break;
+      case 'donate':
+        handleMakeDonation()
+        break;
+      default:
+        break;
     }
   }
 
@@ -165,7 +192,7 @@ export function MiltonServices() {
                 <Input
                   id="blinkAmount"
                   placeholder="Enter amount in SOL"
-                  value={amount}
+                  value={amount} // Consider using a separate state for blink amount
                   onChange={(e) => setAmount(e.target.value)}
                 />
               </div>
@@ -213,17 +240,8 @@ export function MiltonServices() {
           </TabsContent>
         </Tabs>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick={() => {
-          if (document.querySelector('[role="tabpanel"][data-state="active"]')?.id === 'send') {
-            handleSendTokens()
-          } else if (document.querySelector('[role="tabpanel"][data-state="active"]')?.id === 'blink') {
-            handleCreateBlink()
-          } else if (document.querySelector('[role="tabpanel"][data-state="active"]')?.id === 'donate') {
-            handleMakeDonation()
-          }
-        }}>Submit</Button>
+      <CardFooter>
+        <Button onClick={handleSubmit}>Submit</Button>
       </CardFooter>
     </Card>
   )

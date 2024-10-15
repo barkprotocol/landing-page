@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { Button, Input } from 'your-component-library'; // Adjust this import based on your UI library
-import { createNFT } from '../../api/nft'; // Adjust the import path based on your project structure
+import { createNFT } from '../../../api/nft'; // Adjust the import path based on your project structure
 
 const GenerateNFTPage = () => {
   const [nftName, setNftName] = useState('');

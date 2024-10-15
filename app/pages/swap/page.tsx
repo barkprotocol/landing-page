@@ -16,10 +16,10 @@ import { toast } from '@/components/ui/use-toast'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || 'https://api.mainnet-beta.solana.com'
+const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
 
 const config = {
-  basePath: 'https://swap.miltontoken.com'
+  basePath: 'https://swap.miltonprotocol.com'
 }
 const jupiterQuoteApi = createJupiterApiClient(config)
 
@@ -103,7 +103,7 @@ export default function SwapPage() {
 
       toast({
         title: "Swap Successful",
-        description: `Successfully swapped ${inputAmount} ${inputToken} for ${selectedRoute.outAmount / 10 ** 9} ${outputToken}`,
+        description: `Successfully swapped ${inputAmount} ${inputToken} for ${(selectedRoute.outAmount / 10 ** 9).toFixed(6)} ${outputToken}`,
       })
     } catch (error) {
       console.error('Error during swap:', error)
@@ -159,7 +159,7 @@ export default function SwapPage() {
             <SelectItem key={token.address} value={token.symbol}>
               <div className="flex items-center">
                 <Image
-                  src={CURRENCY_ICONS[token.symbol as keyof typeof CURRENCY_ICONS] || '/placeholder.svg'}
+                  src={CURRENCY_ICONS[token.symbol as keyof typeof CURRENCY_ICONS] || 'https://ucarecdn.com/8bcc4664-01b2-4a88-85bc-9ebce234f08b/sol.png'}
                   alt={token.symbol}
                   width={24}
                   height={24}
@@ -229,54 +229,48 @@ export default function SwapPage() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+        <CardFooter className="flex flex-col">
+          {isLoading ? (
+            <Loader2 className="animate-spin h-5 w-5" />
+          ) : (
+            <Button
+              onClick={handleGetRoutes}
+              disabled={inputAmount <= 0 || !inputToken || !outputToken}
+              className="mb-2"
+            >
+              Get Swap Routes
+            </Button>
           )}
-          <Button onClick={handleGetRoutes} disabled={isLoading || !publicKey} className="w-full">
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" style={{ color: ICON_COLOR }} /> : 'Get Best Route'}
-          </Button>
-          {selectedRoute && (
-            <div className="text-sm bg-secondary p-4 rounded-md">
-              <div className="flex justify-between items-center">
-                <p className="font-semibold">Best route:</p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" onClick={handleGetRoutes} disabled={isLoading}>
-                        <RefreshCw className="h-4 w-4" style={{ color: ICON_COLOR }} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Refresh routes</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <p>{selectedRoute.marketInfos.map((m) => m.label).join(' -> ')}</p>
-              <p className="mt-2">
-                <span className="font-semibold">You'll receive:</span>{' '}
-                {(selectedRoute.outAmount / 10 ** 9).toFixed(6)} {outputToken}
-              </p>
-              <p>
-                <span className="font-semibold">Price impact:</span>{' '}
-                {(selectedRoute.priceImpactPct * 100).toFixed(2)}%
-              </p>
-              <p>
-                <span className="font-semibold">Minimum received:</span>{' '}
-                {(selectedRoute.outAmountWithSlippage / 10 ** 9).toFixed(6)} {outputToken}
-              </p>
+          {routes.length > 0 && (
+            <div>
+              <h3 className="font-bold">Available Routes:</h3>
+              {routes.map((route) => (
+                <Button
+                  key={route.swapTransaction}
+                  variant="outline"
+                  onClick={() => setSelectedRoute(route)}
+                  className={`mb-2 w-full ${selectedRoute === route ? 'bg-gray-200' : ''}`}
+                >
+                  {`Swap ${route.inAmount / 10 ** 9} ${inputToken} for ${route.outAmount / 10 ** 9} ${outputToken}`}
+                </Button>
+              ))}
+              <Button
+                onClick={handleSwap}
+                disabled={!selectedRoute}
+                className="mt-2"
+              >
+                Confirm Swap
+              </Button>
             </div>
           )}
-          <Button onClick={handleSwap} disabled={isLoading || !selectedRoute || !publicKey} className="w-full">
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" style={{ color: ICON_COLOR }} /> : 'Swap'}
-          </Button>
         </CardFooter>
       </Card>
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
     </div>
   )
 }
