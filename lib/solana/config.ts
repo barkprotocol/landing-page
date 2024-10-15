@@ -7,7 +7,7 @@ export const SOLANA_NETWORK = (process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet
 export const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || clusterApiUrl(SOLANA_NETWORK);
 
 // Milton token mint address
-export const MILTON_MINT = new PublicKey('718VHxdiw4V15JzjQ5FHHWuWiPE3cJTmZxGz9U3HgeEv');
+export const MILTON_MINT = new PublicKey('4DsZctdxSVNLGYB5YtY8A8JDg6tUoSZnQHSamXecKWWf');
 
 // USDC token mint address (this is the devnet address, replace with mainnet address when going live)
 export const USDC_MINT = new PublicKey('Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr');

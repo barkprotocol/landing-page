@@ -116,7 +116,7 @@ export default function Tokenomics() {
     { id: 'utility', label: 'Utility', icon: Lightbulb },
     { id: 'emission', label: 'Emission', icon: TrendingUp },
     { id: 'dex', label: 'Market', icon: LayoutGrid },
-    { id: 'token-sale', label: 'Token Sale & Calculator', icon: Banknote },
+    { id: 'token-sale', label: 'Token Sale', icon: Banknote },
     { id: 'buy', label: 'Buy', icon: ShoppingCart },
   ]
 
@@ -143,8 +143,9 @@ export default function Tokenomics() {
   }), [circulatingSupply])
 
   return (
-    <section id="tokenomics" className="py-12 sm:py-24 bg-gradient-to-b from-background to-secondary/20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <section id="tokenomics" className="py-12 sm:py-24 bg-gradient-to-b from-background via-background/50 to-background relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -165,22 +166,22 @@ export default function Tokenomics() {
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <Card className="w-full max-w-6xl mx-auto">
-            <CardContent className="p-1 sm:p-2">
-              <TabsList className="w-full justify-between bg-transparent">
-                {tabs.map((tab) => (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    className="flex-1 data-[state=active]:bg-secondary"
-                  >
-                    <tab.icon className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </CardContent>
-          </Card>
+          <div className="flex justify-center">
+            <TabsList className="inline-flex h-auto p-1 bg-muted rounded-lg">
+              {tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="px-3 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm hover:bg-muted-foreground/10"
+                >
+                  <div className="flex items-center space-x-2">
+                    <tab.icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                  </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -240,6 +241,7 @@ export default function Tokenomics() {
                               <TableCell className="font-medium">{detail.attribute}</TableCell>
                               <TableCell>{detail.value}</TableCell>
                             </TableRow>
+                          
                           ))}
                         </TableBody>
                       </Table>
@@ -249,13 +251,11 @@ export default function Tokenomics() {
               </TabsContent>
 
               <TabsContent value="allocation" className="space-y-8">
-                
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl  sm:text-2xl">Allocation</CardTitle>
+                    <CardTitle className="text-xl sm:text-2xl">Allocation</CardTitle>
                     <CardDescription>Distribution of the max token supply</CardDescription>
                   </CardHeader>
-                  
                   <CardContent>
                     <div className="flex flex-col md:flex-row items-center justify-center gap-8">
                       <div className="w-full max-w-md">
@@ -263,7 +263,7 @@ export default function Tokenomics() {
                           config={{
                             allocation: {
                               label: 'Allocation',
-                              color:  'hsl(var(--chart-1))',
+                              color: 'hsl(var(--chart-1))',
                             },
                           }}
                         >
@@ -573,7 +573,7 @@ export default function Tokenomics() {
                       <li>Set up a Solana wallet (we recommend Phantom or Solflare)</li>
                       <li>Fund your wallet with SOL or USDC</li>
                       <li>Visit one of our partner DEXes (listed in the DEX tab)</li>
-                      <li>Swap your SOL or USDC for MILTON tokens</li>
+                      <li>Swap your SOL or USDC for MILTON</li>
                       <li>Hold, stake, or use your MILTON tokens in our ecosystem!</li>
                     </ol>
                     <div className="mt-8">
@@ -582,7 +582,7 @@ export default function Tokenomics() {
                         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                         asChild
                       >
-                        <Link href="/buy">
+                        <Link href="/pages/buy">
                           Buy $MILTON
                           <ChevronRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                         </Link>

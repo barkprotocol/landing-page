@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { WalletButton } from "@/components/ui/wallet-button"
 
-const MILTON_MINT = new PublicKey('718VHxdiw4V15JzjQ5FHHWuWiPE3cJTmZxGz9U3HgeEv')
+const MILTON_MINT = new PublicKey('4DsZctdxSVNLGYB5YtY8A8JDg6tUoSZnQHSamXecKWWf')
 const MILTON_DECIMALS = 9
 const MILTON_PRICE = 0.000001 // Price in USDC
 

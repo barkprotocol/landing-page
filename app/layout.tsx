@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Manrope } from 'next/font/google'
 import { UserProvider } from '@/lib/auth'
 import { getUser } from '@/lib/db/queries'
-import { WalletProvider } from '@/components/ui/wallet-provider'
+import { WalletProvider } from '@/components/wallet-provider'
 
 export const metadata: Metadata = {
   title: 'Milton',
