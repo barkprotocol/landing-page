@@ -103,7 +103,7 @@ export function Hero() {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Link href="/sign-in" passHref legacyBehavior>
-                <Button asChild className="w-full sm:w-48 bg-[#FFECB1] hover:bg-[#FFE49D] text-gray-900 font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+                <Button asChild className="w-full sm:w-48 bg-[#ffe288] hover:bg-[#FFE49D] text-gray-900 font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
                   <a>
                     Blinkboard
                     <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
@@ -115,7 +115,7 @@ export function Hero() {
                   <TooltipTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="w-full sm:w-48 bg-transparent hover:bg-[#FFECB1]/10 text-[#FFECB1] font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center border border-[#FFECB1] transition-all duration-300 shadow-lg hover:shadow-xl"
+                      className="w-full sm:w-48 bg-transparent hover:bg-[##ffe288]/10 text-[#ffe288] font-semibold py-3 px-6 rounded-md inline-flex items-center justify-center border border-[#FFECB1] transition-all duration-300 shadow-lg hover:shadow-xl"
                       onClick={handleWhitepaperClick}
                     >
                       <FileText className="mr-2 h-5 w-5" aria-hidden="true" />
@@ -155,7 +155,7 @@ export function Hero() {
                 <Card className="bg-white/10 backdrop-blur-sm border-[#FFECB1]/20 hover:bg-[#FFECB1]/20 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                   <CardHeader className="pb-2 text-center">
                     <CardTitle className="text-xl font-semibold flex flex-col items-center">
-                      <card.icon className="mb-2 h-8 w-8 text-[#FFECB1]" aria-hidden="true" />
+                      <card.icon className="mb-2 h-8 w-8 text-[#ffe288]" aria-hidden="true" />
                       <span className="text-[#FFECB1]">{card.title}</span>
                     </CardTitle>
                   </CardHeader>
