@@ -1,3 +1,4 @@
+// ErrorType Enum
 export enum ErrorType {
   RateLimitExceeded = 'RateLimitExceeded',
   Unauthorized = 'Unauthorized',
@@ -33,10 +34,16 @@ export enum ErrorType {
   ConfigurationError = 'ConfigurationError',
 }
 
+// CustomError Class
 export class CustomError extends Error {
   constructor(public type: ErrorType, message: string, public originalError?: unknown) {
     super(message);
     this.name = 'CustomError';
+
+    // Log the original error for debugging
+    if (originalError) {
+      console.error('Original error:', originalError);
+    }
   }
 
   get statusCode(): number {
@@ -93,6 +100,8 @@ export class CustomError extends Error {
       error: this.type,
       message: this.message,
       statusCode: this.statusCode,
+      originalError: this.originalError instanceof Error ? this.originalError.message : undefined,
+      stack: this.originalError instanceof Error ? this.originalError.stack : undefined,
     };
   }
 }

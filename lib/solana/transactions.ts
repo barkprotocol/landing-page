@@ -19,6 +19,7 @@ export async function createTransaction({ sender, recipient, amount, token }: Cr
 
   try {
     if (token === 'SOL') {
+      // Add a check for sender's balance if needed
       transaction.add(
         SystemProgram.transfer({
           fromPubkey: senderPublicKey,
@@ -33,7 +34,7 @@ export async function createTransaction({ sender, recipient, amount, token }: Cr
       const senderTokenAccount = await tokenAccount.getOrCreateAssociatedAccountInfo(senderPublicKey);
       const recipientTokenAccount = await tokenAccount.getOrCreateAssociatedAccountInfo(recipientPublicKey);
 
-      const decimals = await tokenAccount.getMintInfo().then(info => info.decimals);
+      const { decimals } = await tokenAccount.getMintInfo();
       transaction.add(
         Token.createTransferInstruction(
           TOKEN_PROGRAM_ID,
@@ -47,7 +48,7 @@ export async function createTransaction({ sender, recipient, amount, token }: Cr
     }
   } catch (error) {
     console.error('Error creating transaction:', error);
-    throw new Error('Transaction creation failed: ' + error.message);
+    throw new Error('Transaction creation failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 
   return transaction;
@@ -65,6 +66,6 @@ export async function checkTransactionStatus(signature: string): Promise<'pendin
     }
   } catch (error) {
     console.error('Error checking transaction status:', error);
-    throw new Error('Failed to check transaction status: ' + error.message);
+    throw new Error('Failed to check transaction status: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
