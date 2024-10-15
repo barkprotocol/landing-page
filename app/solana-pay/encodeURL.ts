@@ -1,4 +1,4 @@
-import { SOLANA_PROTOCOL } from '../constants.ts';
+import { SOLANA_PROTOCOL } from './constants.ts';
 import type { Amount, Label, Memo, Message, Recipient, References, SPLToken } from './types.ts';
 
 /**

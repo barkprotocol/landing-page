@@ -1,31 +1,39 @@
 'use client'
 
-import { useState } from 'react'
-import { createPaymentRequest, encodePaymentURI, generateQRCode } from '@/utils/solana-pay'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, Loader2 } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import Image from 'next/image'
+import { useState } from 'react';
+import { createPaymentRequest, encodePaymentURI, generateQRCode } from '@/utils/solana-pay';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Image from 'next/image';
 
 export default function CreatePaymentRequest() {
-  const [recipient, setRecipient] = useState('')
-  const [amount, setAmount] = useState('')
-  const [label, setLabel] = useState('')
-  const [message, setMessage] = useState('')
-  const [memo, setMemo] = useState('')
-  const [qrCode, setQrCode] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState('');
+  const [label, setLabel] = useState('');
+  const [message, setMessage] = useState('');
+  const [memo, setMemo] = useState('');
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setQrCode(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setError(null);
+    setQrCode(null);
+    setSuccess(null);
+    setIsLoading(true);
+
+    if (!recipient || !amount || parseFloat(amount) <= 0) {
+      setError('Please enter a valid recipient address and amount greater than 0.');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const paymentRequest = await createPaymentRequest(
@@ -34,16 +42,16 @@ export default function CreatePaymentRequest() {
         label,
         message,
         memo
-      )
-      const uri = encodePaymentURI(paymentRequest)
-      const qrCodeData = await generateQRCode(paymentRequest)
-      setQrCode(qrCodeData)
+      );
+      const qrCodeData = await generateQRCode(paymentRequest);
+      setQrCode(qrCodeData);
+      setSuccess('QR Code generated successfully!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -123,6 +131,12 @@ export default function CreatePaymentRequest() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+        {success && (
+          <Alert variant="success" className="mb-4">
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
         {qrCode && (
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Payment QR Code</h3>
@@ -131,5 +145,5 @@ export default function CreatePaymentRequest() {
         )}
       </CardFooter>
     </Card>
-  )
+  );
 }

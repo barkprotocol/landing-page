@@ -55,10 +55,16 @@ export async function POST(request: NextRequest) {
 
     const authToken = request.headers.get('authorization')?.split(' ')[1]
     if (!authToken || !(await verifyJWT(authToken))) {
+      logger.warn('JWT verification failed', { authToken });
       throw new CustomError(ErrorType.Unauthorized, 'Unauthorized')
     }
 
     if (!(await verifySignature(request))) {
+      logger.warn('Signature verification failed', { 
+        signature: request.headers.get('x-signature'),
+        timestamp: request.headers.get('x-timestamp'),
+        body: await request.text()
+      });
       throw new CustomError(ErrorType.InvalidSignature, 'Invalid signature')
     }
 
@@ -114,6 +120,10 @@ export async function POST(request: NextRequest) {
 
     // Add memo instruction if provided
     if (memo) {
+      if (Buffer.byteLength(memo, 'utf-8') > 256) {
+        throw new CustomError(ErrorType.InvalidInput, 'Memo exceeds 256 bytes');
+      }
+
       transaction.add(
         new SystemProgram.TransactionInstruction({
           keys: [{ pubkey: from, isSigner: true, isWritable: true }],
@@ -182,6 +192,7 @@ export async function PUT(request: NextRequest) {
 
     const authToken = request.headers.get('authorization')?.split(' ')[1]
     if (!authToken || !(await verifyJWT(authToken))) {
+      logger.warn('JWT verification failed', { authToken });
       throw new CustomError(ErrorType.Unauthorized, 'Unauthorized')
     }
 
@@ -211,6 +222,8 @@ export async function PUT(request: NextRequest) {
       where: { id: transactionId },
       data: { status: 'completed', txId, completedAt: new Date() }
     })
+
+    logger.info('Transaction confirmed', { txId, transactionId });
 
     return NextResponse.json({ txId, status: 'confirmed' })
   } catch (error) {

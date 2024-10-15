@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { checkTransactionStatus } from '@/lib/solana/solana-transactions'
+import { checkTransactionStatus } from '@/lib/solana/transactions'
 
 interface TransactionConfirmationProps {
   signature: string
@@ -27,9 +27,16 @@ export function TransactionConfirmation({ signature }: TransactionConfirmationPr
     }
 
     const interval = setInterval(checkStatus, 5000) // Check every 5 seconds
+    checkStatus(); // Initial check
 
     return () => clearInterval(interval)
   }, [signature])
+
+  const handleRetry = () => {
+    setStatus('pending')
+    setError(null)
+    checkStatus(); // Retry checking the status immediately
+  }
 
   return (
     <Card>
@@ -57,6 +64,9 @@ export function TransactionConfirmation({ signature }: TransactionConfirmationPr
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Failed</AlertTitle>
             <AlertDescription>{error || 'Your transaction has failed.'}</AlertDescription>
+            <Button onClick={handleRetry} className="mt-2">
+              Retry
+            </Button>
           </Alert>
         )}
       </CardContent>
@@ -64,6 +74,7 @@ export function TransactionConfirmation({ signature }: TransactionConfirmationPr
         <Button
           onClick={() => window.open(`https://explorer.solana.com/tx/${signature}`, '_blank')}
           className="w-full"
+          disabled={status === 'pending'}
         >
           View on Solana Explorer
         </Button>

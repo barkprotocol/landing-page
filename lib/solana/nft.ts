@@ -7,7 +7,12 @@ import {
     LAMPORTS_PER_SOL,
     sendAndConfirmTransaction,
   } from '@solana/web3.js';
-  import { mintNFTOnSolana } from './nft-utils'; // A utility function to handle NFT minting specifics
+  import {
+    createMint,
+    mintTo,
+    createMetadata,
+    findMetadataAccount,
+  } from './nft-utils'; // Adjust based on your utility functions
   import { getKeypair } from './keypairs'; // Function to retrieve the Keypair for signing transactions
   
   // Function to mint an NFT
@@ -50,7 +55,7 @@ import {
     }
   }
   
-  // Example utility function to mint NFT on Solana
+  // Utility function to mint NFT on Solana
   async function mintNFTOnSolana({
     connection,
     userKeypair,
@@ -67,21 +72,25 @@ import {
     metadata: any;
   }) {
     try {
-      // Create the transaction and instructions for minting the NFT
-      const transaction = new Transaction();
-      
-      // Here you would include logic to create the mint account, initialize the NFT metadata, etc.
-      // This is a placeholder for the actual minting logic you need to implement
-      const mintAddress = new PublicKey(/* Generate mint address */);
+      // Create the mint account
+      const mintAddress = await createMint(connection, userKeypair);
   
-      // Example: create and add instructions for minting the NFT
-      // transaction.add(/* Your instructions here */);
+      // Create metadata for the NFT
+      await createMetadata(connection, userKeypair, mintAddress, {
+        name,
+        symbol: '',
+        uri: image, // Change this to the URI of your metadata if needed
+        sellerFeeBasisPoints: 500, // Example: 5% fee
+        creators: null,
+      });
   
-      // Send the transaction
-      const signature = await sendAndConfirmTransaction(connection, transaction, [userKeypair]);
+      // Mint the NFT to the user's wallet
+      await mintTo(connection, userKeypair, mintAddress, userKeypair.publicKey, 1);
   
+      // Return success data
+      const metadataAccount = await findMetadataAccount(mintAddress);
       return {
-        transactionId: signature,
+        transactionId: metadataAccount.toString(), // Example: using the metadata account address as transaction ID
         mintAddress: mintAddress.toString(),
       };
     } catch (error) {

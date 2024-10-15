@@ -43,7 +43,7 @@ export const createPaymentRequest = async (
   try {
     const recipientPublicKey = new PublicKey(recipient);
     const amountInLamports = new BigNumber(amount).times(LAMPORTS_PER_SOL);
-    const reference = PublicKey.unique();
+    const reference = PublicKey.unique(); // Generate a unique reference key
 
     return {
       recipient: recipientPublicKey,
