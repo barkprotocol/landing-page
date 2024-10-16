@@ -1,5 +1,9 @@
+// ./app/demo/page.tsx
+"use client"; // Mark this as a Client Component
+
 import { useEffect, useState } from 'react';
 
+// Define the types for token info, user balance, and leaderboard entry
 type TokenInfo = {
   supply: number;
   decimals: number;
@@ -18,6 +22,7 @@ type LeaderboardEntry = {
 };
 
 const DemoPage = () => {
+  // State management for token info, user balance, leaderboard, and errors
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
   const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -28,57 +33,73 @@ const DemoPage = () => {
   // Fetch token info on component mount
   useEffect(() => {
     const fetchTokenInfo = async () => {
-      const response = await fetch('/api/v1/demo?action=tokenInfo');
-      const data = await response.json();
-      setTokenInfo(data);
+      try {
+        const response = await fetch('/api/v1/demo?action=tokenInfo');
+        if (!response.ok) throw new Error('Failed to fetch token info');
+        const data = await response.json();
+        setTokenInfo(data);
+      } catch (error) {
+        setError((error as Error).message);
+      }
     };
 
     fetchTokenInfo();
   }, []);
 
-  // Fetch user balance
+  // Fetch user balance based on userId
   const fetchUserBalance = async () => {
-    const response = await fetch(`/api/v1/demo?action=userBalance&userId=${userId}`);
-    if (response.ok) {
+    try {
+      const response = await fetch(`/api/v1/demo?action=userBalance&userId=${userId}`);
+      if (!response.ok) throw new Error('User not found');
       const data = await response.json();
       setUserBalance(data);
-    } else {
-      setError('User not found');
+    } catch (error) {
+      setError((error as Error).message);
     }
   };
 
   // Fetch leaderboard
   const fetchLeaderboard = async () => {
-    const response = await fetch('/api/v1/demo?action=leaderboard');
-    const data = await response.json();
-    setLeaderboard(data);
+    try {
+      const response = await fetch('/api/v1/demo?action=leaderboard');
+      if (!response.ok) throw new Error('Failed to fetch leaderboard');
+      const data = await response.json();
+      setLeaderboard(data);
+    } catch (error) {
+      setError((error as Error).message);
+    }
   };
 
+  // Use useEffect to fetch user balance and leaderboard when userId changes
   useEffect(() => {
     fetchUserBalance();
     fetchLeaderboard();
   }, [userId]);
 
-  // Handle staking
+  // Handle staking action
   const handleStake = async () => {
-    const response = await fetch('/api/v1/demo', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'stake',
-        userId,
-        amount: stakeAmount,
-      }),
-    });
-    
-    const data = await response.json();
-    if (data.success) {
-      alert('Staking successful!');
-      fetchUserBalance(); // Refresh balance
-    } else {
-      setError('Staking failed. Check your balance.');
+    try {
+      const response = await fetch('/api/v1/demo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'stake',
+          userId,
+          amount: stakeAmount,
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert('Staking successful!');
+        fetchUserBalance(); // Refresh balance after successful staking
+      } else {
+        setError('Staking failed. Check your balance.');
+      }
+    } catch (error) {
+      setError((error as Error).message);
     }
   };
 

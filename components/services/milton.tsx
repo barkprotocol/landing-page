@@ -1,68 +1,73 @@
 'use client'
 
-import { useState } from 'react'
-import { useToast } from "@/components/ui/use-toast"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SolanaConfig } from '@/lib/solana/config'
-import { Send, Zap, Heart, AlertCircle } from 'lucide-react'
-import { BlockchainServices } from '@/services/user-services'
+import { useState } from 'react';
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SolanaConfig } from '@/lib/solana/config';
+import { Send, Zap, Heart, AlertCircle } from 'lucide-react';
+import { BlockchainServices } from '@/components/services/user-services';
 
 export function MiltonServices() {
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     recipientAddress: '',
     amount: '',
     blinkLabel: '',
     blinkDescription: '',
     blinkExpiration: '',
-    blinkMaxUses: ''
-  })
+    blinkMaxUses: '',
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target
-    setFormData(prev => ({ ...prev, [id]: value }))
-  }
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
 
   const handleSubmit = async (actionType: string) => {
-    try {
-      const { recipientAddress, amount, blinkLabel, blinkDescription, blinkExpiration, blinkMaxUses } = formData
-      const amountLamports = parseInt(amount) * 1e9 // Convert SOL to lamports
+    const { recipientAddress, amount, blinkLabel, blinkDescription, blinkExpiration, blinkMaxUses } = formData;
+    const amountLamports = parseInt(amount) * 1e9; // Convert SOL to lamports
 
+    try {
       switch (actionType) {
         case 'send':
-          if (!recipientAddress || !amount) throw new Error('Please provide recipient address and amount.')
-          const sendSignature = await BlockchainServices.createTransaction(SolanaConfig.payerPublicKey, recipientAddress, amountLamports, 'Milton Token Transfer')
-          toast({ title: "Tokens Sent Successfully", description: `Transaction Signature: ${sendSignature}` })
-          break
+          await validateFields([recipientAddress, amount]);
+          const sendSignature = await BlockchainServices.createTransaction(SolanaConfig.payerPublicKey, recipientAddress, amountLamports, 'Milton Token Transfer');
+          showToast("Tokens Sent Successfully", `Transaction Signature: ${sendSignature}`);
+          break;
 
         case 'blink':
-          if (!blinkLabel || !blinkDescription || !amount || !blinkExpiration || !blinkMaxUses) throw new Error('Please fill in all fields for creating a Blink.')
-          const expirationDate = new Date(blinkExpiration)
-          const blinkSignature = await BlockchainServices.createBlink(blinkLabel, blinkDescription, amountLamports, expirationDate, parseInt(blinkMaxUses))
-          toast({ title: "Blink Created Successfully", description: `Transaction Signature: ${blinkSignature}` })
-          break
+          await validateFields([blinkLabel, blinkDescription, amount, blinkExpiration, blinkMaxUses]);
+          const blinkSignature = await BlockchainServices.createBlink(blinkLabel, blinkDescription, amountLamports, new Date(blinkExpiration), parseInt(blinkMaxUses));
+          showToast("Blink Created Successfully", `Transaction Signature: ${blinkSignature}`);
+          break;
 
         case 'donate':
-          if (!recipientAddress || !amount) throw new Error('Please provide recipient address and amount for donation.')
-          const donationSignature = await BlockchainServices.makeDonation(recipientAddress, amountLamports)
-          toast({ title: "Donation Made Successfully", description: `Transaction Signature: ${donationSignature}` })
-          break
+          await validateFields([recipientAddress, amount]);
+          const donationSignature = await BlockchainServices.makeDonation(recipientAddress, amountLamports);
+          showToast("Donation Made Successfully", `Transaction Signature: ${donationSignature}`);
+          break;
 
         default:
-          break
+          break;
       }
     } catch (error) {
-      toast({
-        title: `${actionType.charAt(0).toUpperCase() + actionType.slice(1)} Failed`,
-        description: `Error: ${error.message}`,
-        variant: "destructive",
-      })
+      showToast(`${actionType.charAt(0).toUpperCase() + actionType.slice(1)} Failed`, `Error: ${error.message}`, "destructive");
     }
-  }
+  };
+
+  const validateFields = (fields: string[]) => {
+    fields.forEach(field => {
+      if (!field) throw new Error('Please fill in all fields.');
+    });
+  };
+
+  const showToast = (title: string, description: string, variant: string = "default") => {
+    toast({ title, description, variant });
+  };
 
   return (
     <Card className="w-[400px] shadow-lg">
@@ -101,23 +106,23 @@ export function MiltonServices() {
         <Button variant="outline" className="w-full mr-2">Cancel</Button>
         <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           onClick={() => {
-            const activeTab = document.querySelector('[role="tabpanel"][data-state="active"]')?.id
-            handleSubmit(activeTab)
+            const activeTab = document.querySelector('[role="tabpanel"][data-state="active"]')?.id;
+            handleSubmit(activeTab);
           }}>
           Submit
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
 
-function ServiceForm({ label, id, value, onChange, type = 'text' }: { label: string, id: string, value: string, onChange: React.ChangeEventHandler<HTMLInputElement>, type?: string }) {
+function ServiceForm({ label, id, value, onChange, type = 'text' }: { label: string; id: string; value: string; onChange: React.ChangeEventHandler<HTMLInputElement>; type?: string; }) {
   return (
     <div className="flex flex-col space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
       <Input id={id} placeholder={`Enter ${label}`} value={value} onChange={onChange} type={type} />
     </div>
-  )
+  );
 }
 
 export function MiltonInfo() {
@@ -131,16 +136,11 @@ export function MiltonInfo() {
       </CardHeader>
       <CardContent className="pt-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-sm font-semibold">Name:</div>
-          <div>Milton Token</div>
-          <div className="text-sm font-semibold">Symbol:</div>
-          <div>MLT</div>
-          <div className="text-sm font-semibold">Total Supply:</div>
-          <div>1,000,000,000 MLT</div>
-          <div className="text-sm font-semibold">Decimals:</div>
-          <div>9</div>
-          <div className="text-sm font-semibold">Contract Address:</div>
-          <div className="truncate">{SolanaConfig.miltonMintAddress}</div>
+          {renderTokenInfo('Name:', 'Milton Token')}
+          {renderTokenInfo('Symbol:', 'MLT')}
+          {renderTokenInfo('Total Supply:', '1,000,000,000 MLT')}
+          {renderTokenInfo('Decimals:', '9')}
+          {renderTokenInfo('Contract Address:', SolanaConfig.miltonMintAddress, true)}
         </div>
       </CardContent>
       <CardFooter className="bg-gray-50 flex justify-center">
@@ -149,5 +149,14 @@ export function MiltonInfo() {
         </a>
       </CardFooter>
     </Card>
-  )
+  );
+}
+
+function renderTokenInfo(label: string, value: string, truncate: boolean = false) {
+  return (
+    <>
+      <div className="text-sm font-semibold">{label}</div>
+      <div className={truncate ? "truncate" : ""}>{value}</div>
+    </>
+  );
 }

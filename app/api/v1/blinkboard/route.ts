@@ -131,7 +131,9 @@ async function handleTransactionHistory(searchParams: URLSearchParams) {
         return {
           signature: tx.signature,
           blockTime: tx.blockTime,
-          // Add more transaction details as needed
+          // Add more transaction details as needed, such as slot or meta
+          slot: transaction?.slot,
+          meta: transaction?.meta,
         }
       })
     )
