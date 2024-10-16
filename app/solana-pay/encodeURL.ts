@@ -1,5 +1,5 @@
-import { SOLANA_PROTOCOL } from './constants.ts';
-import type { Amount, Label, Memo, Message, Recipient, References, SPLToken } from './types.ts';
+import { SOLANA_PROTOCOL } from './constants.js';
+import type { Amount, Label, Memo, Message, Recipient, References, SPLToken } from './types.js';
 
 /**
  * Fields of a Solana Pay transaction request URL.

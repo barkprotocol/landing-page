@@ -1,109 +1,125 @@
-import React, { useState } from 'react'
+'use client'
+
+import { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { TokenSelector } from "@/components/ui/milton/token-selector"
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/components/ui/use-toast"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+import { Loader2 } from "lucide-react"
 
-const tokens = [
-  { symbol: 'SOL', name: 'Solana', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png' },
-  { symbol: 'USDC', name: 'USD Coin', icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png' },
-  { symbol: 'MILTON', name: 'Milton', icon: 'https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg' },
-]
+const formSchema = z.object({
+  amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: "Amount must be a positive number",
+  }),
+  frequency: z.enum(["daily", "weekly", "monthly"], {
+    required_error: "Please select a frequency",
+  }),
+  recipient: z.string().min(32, "Invalid recipient address").max(44, "Invalid recipient address"),
+})
 
-export function ScheduleTransactionModal() {
-  const [open, setOpen] = useState(false)
-  const [amount, setAmount] = useState('')
-  const [recipient, setRecipient] = useState('')
-  const [selectedToken, setSelectedToken] = useState('SOL')
-  const [date, setDate] = useState<Date>()
+export default function Component() {
+  const [isOpen, setIsOpen] = useState(false)
+  const { toast } = useToast()
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: "",
+      frequency: undefined,
+      recipient: "",
+    },
+  })
 
-  const handleSchedule = () => {
-    // Implement the logic to schedule the transaction
-    console.log('Scheduling transaction:', { amount, recipient, selectedToken, date })
-    setOpen(false)
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      console.log(values)
+      toast({
+        title: "Recurring payment set up",
+        description: "Your recurring payment has been successfully configured.",
+      })
+      setIsOpen(false)
+      form.reset()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was a problem setting up your recurring payment.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Schedule Transaction</Button>
+        <Button variant="outline">Set Up Recurring Payment</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Schedule Transaction</DialogTitle>
+          <DialogTitle>Set Up Recurring Payment</DialogTitle>
           <DialogDescription>
-            Set up a future transaction to be executed automatically.
+            Configure your recurring payment details here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="amount" className="text-right">
-              Amount
-            </Label>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount</Label>
             <Input
               id="amount"
               type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="col-span-3"
+              step="0.00000001"
+              placeholder="Enter amount"
+              {...form.register("amount")}
             />
+            {form.formState.errors.amount && (
+              <p className="text-sm text-red-500">{form.formState.errors.amount.message}</p>
+            )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="token" className="text-right">
-              Token
-            </Label>
-            <TokenSelector
-              tokens={tokens}
-              value={selectedToken}
-              onValueChange={setSelectedToken}
-            />
+          <div className="space-y-2">
+            <Label htmlFor="frequency">Frequency</Label>
+            <Select onValueChange={(value) => form.setValue("frequency", value as "daily" | "weekly" | "monthly")}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.frequency && (
+              <p className="text-sm text-red-500">{form.formState.errors.frequency.message}</p>
+            )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="recipient" className="text-right">
-              Recipient
-            </Label>
+          <div className="space-y-2">
+            <Label htmlFor="recipient">Recipient</Label>
             <Input
               id="recipient"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-              className="col-span-3"
+              placeholder="Enter recipient address"
+              {...form.register("recipient")}
             />
+            {form.formState.errors.recipient && (
+              <p className="text-sm text-red-500">{form.formState.errors.recipient.message}</p>
+            )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right">
-              Date
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-[280px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
           </div>
-        </div>
-        <Button onClick={handleSchedule}>Schedule Transaction</Button>
+        </form>
       </DialogContent>
     </Dialog>
   )

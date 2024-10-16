@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
@@ -66,7 +64,7 @@ export function FAQ() {
   }
 
   return (
-    <section id="faq" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section id="faq" className="py-20 bg-gray-100">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.h2 
           className="text-3xl font-bold text-center text-gray-900 mb-12"

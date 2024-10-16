@@ -14,7 +14,7 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["node"],
+    "types": ["node", "@types/react", "@types/react-dom"],
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",

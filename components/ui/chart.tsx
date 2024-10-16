@@ -73,20 +73,22 @@ const ChartContainer = React.forwardRef<
 ChartContainer.displayName = "Chart"
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([_, config]) => config.theme || config.color
-  )
+  const colorConfig = React.useMemo(() => {
+    if (!config || typeof config !== 'object') {
+      return []
+    }
+    return Object.entries(config).filter(
+      ([_, itemConfig]) => itemConfig && (itemConfig.theme || itemConfig.color)
+    )
+  }, [config])
 
-  if (!colorConfig.length) {
+  if (colorConfig.length === 0) {
     return null
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
+  const styleContent = Object.entries(THEMES)
+    .map(
+      ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
@@ -95,11 +97,17 @@ ${colorConfig
       itemConfig.color
     return color ? `  --color-${key}: ${color};` : null
   })
+  .filter(Boolean)
   .join("\n")}
 }
 `
-          )
-          .join("\n"),
+    )
+    .join("\n")
+
+  return (
+    <style
+      dangerouslySetInnerHTML={{
+        __html: styleContent,
       }}
     />
   )

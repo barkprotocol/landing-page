@@ -1,28 +1,29 @@
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Info } from 'lucide-react'
+import { ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 const navajoWhite = '#ffc272'
 
 const feeData = {
   spl: [
-    { name: 'Liquidity Pool', percentage: 35, color: navajoWhite },
-    { name: 'Community Treasury', percentage: 25, color: 'hsl(var(--primary))' },
-    { name: 'Charitable Causes', percentage: 20, color: 'hsl(var(--secondary))' },
-    { name: 'Development Fund', percentage: 10, color: 'hsl(var(--accent))' },
-    { name: 'Governance', percentage: 5, color: 'hsl(var(--muted))' },
-    { name: 'Treasury Fund', percentage: 5, color: 'hsl(var(--warning))' },
+    { name: 'Liquidity Pool', value: 35, color: navajoWhite },
+    { name: 'Community Treasury', value: 25, color: 'hsl(var(--primary))' },
+    { name: 'Charitable Causes', value: 20, color: 'hsl(var(--secondary))' },
+    { name: 'Development Fund', value: 10, color: 'hsl(var(--accent))' },
+    { name: 'Governance', value: 5, color: 'hsl(var(--muted))' },
+    { name: 'Treasury Fund', value: 5, color: 'hsl(var(--warning))' },
   ],
   token2022: [
-    { name: 'Liquidity Pool', percentage: 45, color: navajoWhite },
-    { name: 'Community Treasury', percentage: 20, color: 'hsl(var(--primary))' },
-    { name: 'Charitable Causes', percentage: 15, color: 'hsl(var(--secondary))' },
-    { name: 'Development Fund', percentage: 10, color: 'hsl(var(--accent))' },
-    { name: 'Governance', percentage: 5, color: 'hsl(var(--muted))' },
-    { name: 'Treasury Fund', percentage: 5, color: 'hsl(var(--warning))' },
+    { name: 'Liquidity Pool', value: 45, color: navajoWhite },
+    { name: 'Community Treasury', value: 20, color: 'hsl(var(--primary))' },
+    { name: 'Charitable Causes', value: 15, color: 'hsl(var(--secondary))' },
+    { name: 'Development Fund', value: 10, color: 'hsl(var(--accent))' },
+    { name: 'Governance', value: 5, color: 'hsl(var(--muted))' },
+    { name: 'Treasury Fund', value: 5, color: 'hsl(var(--warning))' },
   ],
 }
 
@@ -37,19 +38,8 @@ const transactionTypes = {
   ],
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-background border border-border p-2 rounded-lg shadow-md">
-        <p className="font-semibold">{`${payload[0].name}: ${payload[0].value}%`}</p>
-      </div>
-    )
-  }
-  return null
-}
-
 const FeeAllocationChart = ({ data }: { data: typeof feeData.spl }) => (
-  <div className="h-[300px]">
+  <ChartContainer className="h-[300px]">
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
         <Pie
@@ -60,18 +50,18 @@ const FeeAllocationChart = ({ data }: { data: typeof feeData.spl }) => (
           outerRadius={80}
           fill="#8884d8"
           paddingAngle={5}
-          dataKey="percentage"
+          dataKey="value"
           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
         </Pie>
-        <Tooltip content={<CustomTooltip />} />
-        <Legend />
+        <ChartTooltip content={<ChartTooltipContent />} />
       </PieChart>
     </ResponsiveContainer>
-  </div>
+    <ChartLegend className="mt-4" />
+  </ChartContainer>
 )
 
 const TransactionFeeTable = ({ data }: { data: typeof transactionTypes.spl }) => (
@@ -136,7 +126,7 @@ export function Fees() {
         </Tabs>
         <div className="mt-6 p-4 bg-muted rounded-lg">
           <h4 className="text-lg font-semibold mb-2 flex items-center">
-            <Info className="w-5 h-5 mr-2" />
+            <Info className="w-5 h-5 mr-2" aria-hidden="true" />
             Fee Allocation Breakdown
           </h4>
           <ul className="list-disc list-inside space-y-2 text-sm">
