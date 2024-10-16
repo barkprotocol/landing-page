@@ -1,14 +1,53 @@
-import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Info } from 'lucide-react'
-import { ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import React from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Info } from 'lucide-react';
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
-const navajoWhite = '#ffc272'
+const navajoWhite = '#ffc272';
 
-const feeData = {
+interface FeeAllocation {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface TransactionType {
+  type: string;
+  fee: string;
+}
+
+interface FeeData {
+  spl: FeeAllocation[];
+  token2022: FeeAllocation[];
+}
+
+interface TransactionData {
+  spl: TransactionType[];
+  token2022: TransactionType[];
+}
+
+const feeData: FeeData = {
   spl: [
     { name: 'Liquidity Pool', value: 35, color: navajoWhite },
     { name: 'Community Treasury', value: 25, color: 'hsl(var(--primary))' },
@@ -25,9 +64,9 @@ const feeData = {
     { name: 'Governance', value: 5, color: 'hsl(var(--muted))' },
     { name: 'Treasury Fund', value: 5, color: 'hsl(var(--warning))' },
   ],
-}
+};
 
-const transactionTypes = {
+const transactionTypes: TransactionData = {
   spl: [
     { type: 'Buy', fee: '1.5%' },
     { type: 'Sell', fee: '2%' },
@@ -36,12 +75,12 @@ const transactionTypes = {
   token2022: [
     { type: 'All Transactions', fee: '5%' },
   ],
-}
+};
 
-const FeeAllocationChart = ({ data }: { data: typeof feeData.spl }) => (
+const FeeAllocationChart: React.FC<{ data: FeeAllocation[] }> = ({ data }) => (
   <ChartContainer className="h-[300px]">
     <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
+      <PieChart aria-label="Fee allocation chart">
         <Pie
           data={data}
           cx="50%"
@@ -62,9 +101,9 @@ const FeeAllocationChart = ({ data }: { data: typeof feeData.spl }) => (
     </ResponsiveContainer>
     <ChartLegend className="mt-4" />
   </ChartContainer>
-)
+);
 
-const TransactionFeeTable = ({ data }: { data: typeof transactionTypes.spl }) => (
+const TransactionFeeTable: React.FC<{ data: TransactionType[] }> = ({ data }) => (
   <Table>
     <TableHeader>
       <TableRow>
@@ -81,14 +120,16 @@ const TransactionFeeTable = ({ data }: { data: typeof transactionTypes.spl }) =>
       ))}
     </TableBody>
   </Table>
-)
+);
 
 export function Fees() {
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">MILTON Fee Structure</CardTitle>
-        <CardDescription>Breakdown of transaction fees and their allocation for SPL and Token-2022 versions</CardDescription>
+        <CardDescription>
+          Breakdown of transaction fees and their allocation for SPL and Token-2022 versions
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="spl" className="w-full">
@@ -130,12 +171,24 @@ export function Fees() {
             Fee Allocation Breakdown
           </h4>
           <ul className="list-disc list-inside space-y-2 text-sm">
-            <li><span className="font-medium">Liquidity Pool:</span> Ensures smooth trading experience and price stability</li>
-            <li><span className="font-medium">Community Treasury:</span> Funds community-driven initiatives and rewards</li>
-            <li><span className="font-medium">Charitable Causes:</span> Supports various charitable organizations and initiatives</li>
-            <li><span className="font-medium">Development Fund:</span> Finances ongoing platform development and improvements</li>
-            <li><span className="font-medium">Governance:</span> Allocated for community voting and decision-making processes</li>
-            <li><span className="font-medium">Treasury Fund:</span> Reserved for unforeseen expenses and long-term sustainability</li>
+            <li>
+              <span className="font-medium">Liquidity Pool:</span> Ensures smooth trading experience and price stability
+            </li>
+            <li>
+              <span className="font-medium">Community Treasury:</span> Funds community-driven initiatives and rewards
+            </li>
+            <li>
+              <span className="font-medium">Charitable Causes:</span> Supports various charitable organizations and initiatives
+            </li>
+            <li>
+              <span className="font-medium">Development Fund:</span> Finances ongoing platform development and improvements
+            </li>
+            <li>
+              <span className="font-medium">Governance:</span> Allocated for community voting and decision-making processes
+            </li>
+            <li>
+              <span className="font-medium">Treasury Fund:</span> Reserved for unforeseen expenses and long-term sustainability
+            </li>
           </ul>
         </div>
         <p className="mt-6 text-sm text-muted-foreground">
@@ -143,5 +196,5 @@ export function Fees() {
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }

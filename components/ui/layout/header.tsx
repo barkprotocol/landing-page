@@ -1,44 +1,47 @@
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Menu, X, Rocket } from 'lucide-react'
-import { WalletButton } from '@/components/ui/wallet-button'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Menu, X, Rocket } from 'lucide-react';
+import { WalletButton } from '@/components/ui/wallet-button';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const navItems = [
+type NavItem = {
+  href: string;
+  label: string;
+};
+
+const navItems: NavItem[] = [
   { href: '#features', label: 'Features' },
   { href: './pages/solutions', label: 'Solutions' },
   { href: '#tokenomics', label: 'Tokenomics' },
   { href: '#faq', label: 'FAQ' },
-  { href: '#community', label: 'Community' },
-]
+  { href: './app/demo', label: 'API' },
+];
 
 export function Header() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const pathname = usePathname()
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   const handleScroll = useCallback(() => {
-    setScrolled(window.scrollY > 10)
-  }, [])
+    setScrolled(window.scrollY > 10);
+  }, []);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [handleScroll])
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   useEffect(() => {
-    setMenuOpen(false)
-  }, [pathname])
+    setMenuOpen(false);
+  }, [pathname]);
 
-  const toggleMenu = () => setMenuOpen(!menuOpen)
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   return (
-    <header className={`sticky top-0 z-40 transition-all duration-300 ${
-      scrolled ? 'bg-white shadow-md' : 'bg-transparent'
-    }`}>
+    <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <Link href="/" className="flex items-center space-x-2">
@@ -50,9 +53,7 @@ export function Header() {
               className="w-12 h-12"
               priority
             />
-            <span className={`text-2xl font-bold ${
-              scrolled ? 'text-gray-900' : 'text-gray-900'
-            }`}>MILTON</span>
+            <span className={`text-2xl font-bold ${scrolled ? 'text-gray-900' : 'text-gray-900'}`}>MILTON</span>
           </Link>
           <nav className="hidden md:flex space-x-8">
             {navItems.map((item) => (
@@ -70,14 +71,14 @@ export function Header() {
           <div className="hidden md:flex space-x-4 items-center">
             <WalletButton />
             <Button variant="outline" className="text-primary hover:bg-primary/10">
-              <Rocket className="mr-2 h-4 w-4" />  {/* Changed icon */}
-              Launch App  {/* Changed text */}
+              <Rocket className="mr-2 h-4 w-4" />
+              Launch App
             </Button>
           </div>
           <button
             className="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={toggleMenu}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
           >
             {menuOpen ? (
@@ -97,7 +98,7 @@ export function Header() {
             transition={{ duration: 0.3 }}
             className="md:hidden bg-white py-2"
           >
-            <nav className="flex flex-col space-y-2 px-4">
+            <nav className="flex flex-col space-y-2 px-2">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -110,13 +111,13 @@ export function Header() {
               ))}
               <WalletButton />
               <Button variant="outline" className="text-primary hover:bg-primary/10 w-full">
-                <Rocket className="mr-2 h-4 w-4" />  {/* Changed icon */}
-                Launch App  {/* Changed text */}
+                <Rocket className="mr-2 h-4 w-4" />
+                Launch App
               </Button>
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
     </header>
-  )
+  );
 }

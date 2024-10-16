@@ -1,11 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // Enable dark mode using a class
   darkMode: ['class'],
+  // Specify the paths to your content files for Tailwind to scan
   content: [
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    // Configure the container settings
     container: {
       center: true,
       padding: "2rem",
@@ -14,6 +17,7 @@ module.exports = {
       },
     },
     extend: {
+      // Extend default colors
       colors: {
         milton: {
           50: '#f8fafc',
@@ -62,11 +66,13 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      // Customize border radius values
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      // Define custom box shadows
       boxShadow: {
         soft: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
         md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -74,6 +80,7 @@ module.exports = {
         xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         card: '0px 4px 6px rgba(0, 0, 0, 0.1)',
       },
+      // Define keyframes for animations
       keyframes: {
         "accordion-down": {
           from: { height: 0 },
@@ -100,6 +107,7 @@ module.exports = {
           "100%": { transform: "translateY(100%)" },
         },
       },
+      // Define animations using the keyframes
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
@@ -108,6 +116,7 @@ module.exports = {
         "slide-in": "slide-in 0.3s ease-out",
         "slide-out": "slide-out 0.3s ease-out",
       },
+      // Typography settings
       typography: {
         DEFAULT: {
           css: {
@@ -196,6 +205,7 @@ module.exports = {
       },
     },
   },
+  // Register plugins
   plugins: [
     require('tailwindcss-animate'),
     require('@tailwindcss/typography'),
