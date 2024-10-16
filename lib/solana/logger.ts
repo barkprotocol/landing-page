@@ -1,11 +1,4 @@
 import winston from 'winston';
-import { Logtail } from '@logtail/node';
-import { LogtailTransport } from '@logtail/winston';
-
-// Initialize Logtail (if LOGTAIL_SOURCE_TOKEN is provided)
-const logtail = process.env.LOGTAIL_SOURCE_TOKEN
-  ? new Logtail(process.env.LOGTAIL_SOURCE_TOKEN)
-  : null;
 
 // Custom log levels
 const levels = {
@@ -53,11 +46,6 @@ export const logger = winston.createLogger({
   ],
 });
 
-// Add Logtail transport if token is provided
-if (logtail) {
-  logger.add(new LogtailTransport(logtail));
-}
-
 // Add colors to Winston logger
 winston.addColors(colors);
 
@@ -90,6 +78,7 @@ export function logUnhandledErrors(): void {
 
   process.on('uncaughtException', (error) => {
     logger.error('Uncaught Exception:', error);
+    // Consider adding cleanup logic here if necessary
     process.exit(1);
   });
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Button, Input } from '@/components/ui'; 
-import { createNFT } from '@/components/blinkboard/create-nft-form'; // Adjust the import path as needed
+import { Button, Input } from '@/components/ui/wallet-button'; 
+import { createNFT } from '@/components/blinkboard/create-nft-form';
 
 const MintPage: React.FC = () => {
   const [nftName, setNftName] = useState<string>('');
