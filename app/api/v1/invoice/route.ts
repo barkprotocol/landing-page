@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Connection, PublicKey, Transaction, SystemProgram, sendAndConfirmTransaction } from '@solana/web3.js'
-import { getOrCreateAssociatedTokenAccount, createTransferInstruction, getMint } from '@solana/spl-token'
+import { Connection, PublicKey } from '@solana/web3.js'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 

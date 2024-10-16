@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { ArrowRight, Loader2, DollarSign, CreditCard, AlertCircle, CheckCircle2, Coins, RefreshCw } from 'lucide-react'
+import { ArrowRight, Loader2, DollarSign, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -35,15 +35,15 @@ interface TokenPurchaseFormProps {
 export default function TokenPurchaseForm({ setError }: TokenPurchaseFormProps) {
   const { publicKey, signTransaction } = useWallet()
   const { toast } = useToast()
-  const [miltonAmount, setMiltonAmount] = useState('')
-  const [paymentAmount, setPaymentAmount] = useState('')
+  const [miltonAmount, setMiltonAmount] = useState<string>('')
+  const [paymentAmount, setPaymentAmount] = useState<string>('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(paymentMethods[0])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [progress, setProgress] = useState<number>(0)
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false)
   const [transactionStatus, setTransactionStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle')
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({})
-  const [isLoadingRates, setIsLoadingRates] = useState(false)
+  const [isLoadingRates, setIsLoadingRates] = useState<boolean>(false)
 
   useEffect(() => {
     fetchExchangeRates()
@@ -61,14 +61,16 @@ export default function TokenPurchaseForm({ setError }: TokenPurchaseFormProps) 
   const fetchExchangeRates = async () => {
     setIsLoadingRates(true)
     try {
-      // Replace this with your actual API endpoint
       const response = await fetch('https://api.example.com/milton/exchange-rates')
+      if (!response.ok) {
+        throw new Error('Failed to fetch exchange rates')
+      }
       const data = await response.json()
       setExchangeRates(data.rates)
     } catch (error) {
       console.error('Failed to fetch exchange rates:', error)
       toast({
-        title: "Failed to fetch exchange rates",
+        title: "Error fetching rates",
         description: "Please try again later.",
         variant: "destructive",
       })
@@ -195,124 +197,91 @@ export default function TokenPurchaseForm({ setError }: TokenPurchaseFormProps) 
             <Label className="text-sm font-medium">Payment Method</Label>
             <RadioGroup
               value={selectedPaymentMethod.id}
-              onValueChange={(value) => setSelectedPaymentMethod(paymentMethods.find(method => method.id === value) || paymentMethods[0])}
+              onValueChange={(value) => {
+                const newMethod = paymentMethods.find(method => method.id === value) || paymentMethods[0]
+                setSelectedPaymentMethod(newMethod)
+                toast({
+                  title: "Payment Method Changed",
+                  description: `You have selected ${newMethod.name}.`,
+                })
+              }}
               className="grid grid-cols-2 gap-4"
             >
               {paymentMethods.map((method) => (
                 <div key={method.id}>
                   <RadioGroupItem
-                    value={method.id}
                     id={method.id}
-                    className="peer sr-only"
+                    value={method.id}
+                    className="hidden"
                   />
                   <Label
                     htmlFor={method.id}
-                    className="flex flex-col items-center justify-center h-24 rounded-md border-2 border-muted bg-popover hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all duration-200 ease-in-out"
+                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-400"
                   >
-                    <div className="flex flex-col items-center justify-center h-full">
-                      <Image
-                        src={method.icon}
-                        alt={method.name}
-                        width={32}
-                        height={32}
-                        className="mb-2"
-                      />
-                      <span className="text-xs font-medium">{method.name}</span>
-                    </div>
+                    <Image src={method.icon} alt={method.name} width={40} height={40} />
+                    <span className="mt-2 text-sm font-semibold">{method.name}</span>
                   </Label>
                 </div>
               ))}
             </RadioGroup>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="payment-amount" className="flex items-center space-x-2 text-sm font-medium">
-              <DollarSign className="h-4 w-4" />
-              <span>{selectedPaymentMethod.name} Equivalent</span>
+            <Label className="flex items-center space-x-2 text-sm font-medium">
+              <DollarSign size={20} />
+              <span>Payment Amount</span>
             </Label>
             <Input
               id="payment-amount"
               type="text"
               value={paymentAmount}
               readOnly
-              disabled
-              className="w-full px-3 py-2 text-sm bg-muted"
+              className="w-full px-3 py-2 text-sm bg-gray-100 cursor-not-allowed"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={!publicKey || isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                Buy $MILTON
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
+          {isLoadingRates && <Loader2 className="animate-spin mx-auto" />}
+          {transactionStatus === 'processing' && (
+            <Progress value={progress} className="mt-4" />
+          )}
+          {transactionStatus === 'success' && (
+            <Alert variant="success" className="mt-4">
+              <CheckCircle2 className="mr-2" />
+              <AlertTitle>Success!</AlertTitle>
+              <AlertDescription>Your purchase was successful.</AlertDescription>
+            </Alert>
+          )}
+          {transactionStatus === 'error' && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="mr-2" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{setError}</AlertDescription>
+            </Alert>
+          )}
+          <CardFooter>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !miltonAmount || parseFloat(miltonAmount) <= 0}
+              className="w-full"
+            >
+              {isSubmitting ? 'Processing...' : 'Buy MILTON Tokens'}
+              <ArrowRight className="ml-2" />
+            </Button>
+          </CardFooter>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col items-start space-y-2">
-        <p className="text-xs text-muted-foreground">
-          Exchange Rate: 1 MILTON = {exchangeRates[selectedPaymentMethod.id]?.toFixed(6) || 'Loading...'} {selectedPaymentMethod.id}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchExchangeRates}
-          disabled={isLoadingRates}
-          className="flex items-center space-x-2 text-xs"
-        >
-          <RefreshCw className="h-3 w-3" />
-          <span>Refresh Rates</span>
-        </Button>
-      </CardFooter>
-
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Purchase</DialogTitle>
             <DialogDescription>
-              You are about to purchase {miltonAmount} MILTON tokens for {paymentAmount} {selectedPaymentMethod.name}.
+              Are you sure you want to buy {miltonAmount} MILTON tokens for {paymentAmount} {selectedPaymentMethod.name}?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={confirmPurchase} disabled={isSubmitting}>
-              {isSubmitting ? 'Processing...' : 'Confirm Purchase'}
-            </Button>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>Cancel</Button>
+            <Button onClick={confirmPurchase}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {isSubmitting && (
-        <div className="mt-4 space-y-2 px-6">
-          <Progress value={progress} className="w-full" />
-          <p className="text-xs text-center text-muted-foreground">
-            Transaction in progress: {progress}%
-          </p>
-        </div>
-      )}
-
-      {transactionStatus === 'success' && (
-        <Alert className="mt-4 mx-6">
-          <CheckCircle2 className="h-4 w-4" />
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>
-            Your purchase of {miltonAmount} MILTON tokens was successful!
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {transactionStatus === 'error' && (
-        <Alert variant="destructive" className="mt-4 mx-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            There was an error processing your transaction. Please try again.
-          </AlertDescription>
-        </Alert>
-      )}
     </Card>
   )
 }

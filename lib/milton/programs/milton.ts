@@ -7,7 +7,7 @@ import { MiltonSwapProgram } from './milton-swap-program';
 import { CustomError, ErrorType } from './custom-error';
 import { logger } from '../solana/logger';
 
-// Program IDs
+// Program IDs initialized from environment variables
 export const MILTON_BLINK_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_MILTON_BLINK_PROGRAM_ID!);
 export const MILTON_STAKING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_MILTON_STAKING_PROGRAM_ID!);
 export const MILTON_NFT_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_MILTON_NFT_PROGRAM_ID!);
@@ -17,6 +17,7 @@ export const MILTON_SWAP_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_MILT
 export class Milton {
   private connection: Connection;
 
+  // Instances of program classes
   public blinkProgram: MiltonBlinkProgram;
   public stakingProgram: MiltonStakingProgram;
   public nftProgram: MiltonNFTProgram;
@@ -27,6 +28,7 @@ export class Milton {
     this.connection = connection;
 
     try {
+      // Initialize program instances
       this.blinkProgram = new MiltonBlinkProgram(connection, MILTON_BLINK_PROGRAM_ID);
       this.stakingProgram = new MiltonStakingProgram(connection, MILTON_STAKING_PROGRAM_ID);
       this.nftProgram = new MiltonNFTProgram(connection, MILTON_NFT_PROGRAM_ID);
@@ -59,7 +61,7 @@ export class Milton {
         const accountInfo = await this.connection.getAccountInfo(programId);
         if (!accountInfo) {
           logger.warn(`Program account not found for ${name}: ${programId.toBase58()}`);
-          return false;
+          return false; // Early exit if any account is not found
         }
       }
       logger.info('All Milton program accounts are initialized');
@@ -73,12 +75,13 @@ export class Milton {
   // Method to get the version of all Milton programs
   public async getProgramVersions(): Promise<Record<string, string>> {
     try {
-      const versions: Record<string, string> = {};
-      versions['blink'] = await this.blinkProgram.getVersion();
-      versions['staking'] = await this.stakingProgram.getVersion();
-      versions['nft'] = await this.nftProgram.getVersion();
-      versions['governance'] = await this.governanceProgram.getVersion();
-      versions['swap'] = await this.swapProgram.getVersion();
+      const versions: Record<string, string> = {
+        blink: await this.blinkProgram.getVersion(),
+        staking: await this.stakingProgram.getVersion(),
+        nft: await this.nftProgram.getVersion(),
+        governance: await this.governanceProgram.getVersion(),
+        swap: await this.swapProgram.getVersion(),
+      };
       logger.info('Retrieved versions for all Milton programs');
       return versions;
     } catch (error) {

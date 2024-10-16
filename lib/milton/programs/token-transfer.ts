@@ -38,6 +38,8 @@ async function createMiltonAccountIfNotExist(
         MILTON_MINT_ADDRESS
       )
     );
+    
+    // Send transaction to create the associated token account
     await sendAndConfirmTransaction(connection, transaction, [payer], { commitment: 'confirmed' });
     logger.info(`Created MILTON token account for ${owner.toBase58()}`);
   }
@@ -54,9 +56,15 @@ export async function transferMiltonTokens(
   amount: number
 ): Promise<string> {
   try {
+    // Validate the transfer amount
+    if (amount <= 0) {
+      throw new CustomError(ErrorType.InvalidInput, 'Transfer amount must be greater than zero');
+    }
+    
     const fromTokenAccount = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, fromAddress);
     const toTokenAccount = await getAssociatedTokenAddress(MILTON_MINT_ADDRESS, toAddress);
     
+    // Ensure the recipient's account exists
     await createMiltonAccountIfNotExist(connection, payer, toAddress);
     
     const tokenAmount = BigInt(Math.round(amount * Math.pow(10, MILTON_DECIMALS)));
@@ -71,13 +79,20 @@ export async function transferMiltonTokens(
         MILTON_DECIMALS
       )
     );
-    
+
     const signature = await sendAndConfirmTransaction(connection, transaction, [payer], { commitment: 'confirmed' });
+    
+    // Optional: Check transaction status
+    const transactionStatus = await connection.getTransaction(signature);
+    if (transactionStatus?.meta?.err) {
+      throw new CustomError(ErrorType.TransactionFailed, 'Transaction failed');
+    }
+
     logger.info(`Transferred ${amount} MILTON tokens from ${fromAddress.toBase58()} to ${toAddress.toBase58()}`);
     return signature;
   } catch (error) {
     logger.error('Error transferring MILTON tokens:', error);
-    throw new CustomError(ErrorType.TransactionFailed, 'Failed to transfer MILTON tokens');
+    throw new CustomError(ErrorType.TransactionFailed, `Failed to transfer MILTON tokens: ${error.message}`);
   }
 }
 
@@ -136,4 +151,5 @@ export async function createMiltonAccount(
   }
 }
 
+// Export constants for external use
 export { MILTON_MINT_ADDRESS, MILTON_DECIMALS };

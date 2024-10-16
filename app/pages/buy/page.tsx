@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { WalletProvider, useWallet } from '@solana/wallet-adapter-react'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import {
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+} from '@solana/wallet-adapter-wallets'
 import TokenPurchaseForm from '@/components/payments/buy-token/token-purchase-form'
 import { WalletButton } from '@/components/ui/wallet-button'
 import { Button } from "@/components/ui/button"
@@ -12,11 +16,19 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, AlertCircle, Info, Coins, Shield } from 'lucide-react'
 
+// Default logo URL
 const MILTON_LOGO_URL = process.env.NEXT_PUBLIC_MILTON_LOGO_URL || 'https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg'
+
+// Initialize wallet adapters
+const wallets = [
+  new PhantomWalletAdapter(),
+  new SolflareWalletAdapter(),
+  // Add other wallets as needed
+];
 
 export default function BuyPage() {
   return (
-    <WalletProvider>
+    <WalletProvider wallets={wallets}>
       <WalletModalProvider>
         <BuyPageContent />
       </WalletModalProvider>

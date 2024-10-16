@@ -77,14 +77,26 @@ export default function ServicesPage() {
 
         <div className="mt-16 text-center">
           <p className="text-lg text-muted-foreground mb-4">
+            Want to explore other sections of our platform?
+          </p>
+          <div className="flex justify-center space-x-4 mb-8">
+            <a
+              href="/"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-secondary text-secondary-foreground hover:bg-secondary/90 h-10 py-2 px-4"
+            >
+              Back to Main
+            </a>
+            <a
+              href="/swap"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4"
+            >
+              Get Started with Milton Dashboard
+            </a>
+          </div>
+
+          <p className="text-lg text-muted-foreground mb-4">
             Ready to dive into the world of meme-powered DeFi?
           </p>
-          <a
-            href="/swap"
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4"
-          >
-            Get Started with Milton Dashboard
-          </a>
         </div>
       </div>
     </section>

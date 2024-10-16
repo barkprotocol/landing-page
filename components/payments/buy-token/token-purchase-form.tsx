@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Connection, PublicKey, Transaction } from '@solana/web3.js'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { ArrowRight, Loader2, DollarSign } from 'lucide-react'
+import { ArrowRight, Loader2, DollarSign, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Image from 'next/image'
 
@@ -20,8 +22,8 @@ interface PaymentMethod {
 }
 
 const paymentMethods: PaymentMethod[] = [
-  { id: 'SOL', name: 'Solana', icon: 'https://ucarecdn.com/8bcc4664-01b2-4a88-85bc-9ebce234f08b/sol.png' },
-  { id: 'USDC', name: 'USD Coin', icon: 'https://ucarecdn.com/67e17a97-f3bd-46c0-8627-e13b8b939d26/usdc.png' },
+  { id: 'SOL', name: 'Solana', icon: 'https://ucarecdn.com/67e17a97-f3bd-46c0-8627-e13b8b939d26/usdc.png' },
+  { id: 'USDC', name: 'USD Coin', icon: 'https://ucarecdn.com/8bcc4664-01b2-4a88-85bc-9ebce234f08b/sol.png' },
 ]
 
 const MILTON_ICON_URL = 'https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg'
@@ -33,14 +35,15 @@ interface TokenPurchaseFormProps {
 export default function TokenPurchaseForm({ setError }: TokenPurchaseFormProps) {
   const { publicKey, signTransaction } = useWallet()
   const { toast } = useToast()
-  const [miltonAmount, setMiltonAmount] = useState('')
-  const [paymentAmount, setPaymentAmount] = useState('')
+  const [miltonAmount, setMiltonAmount] = useState<string>('')
+  const [paymentAmount, setPaymentAmount] = useState<string>('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(paymentMethods[0])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [progress, setProgress] = useState<number>(0)
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false)
+  const [transactionStatus, setTransactionStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle')
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({})
-  const [isLoadingRates, setIsLoadingRates] = useState(false)
+  const [isLoadingRates, setIsLoadingRates] = useState<boolean>(false)
 
   useEffect(() => {
     fetchExchangeRates()
@@ -58,13 +61,16 @@ export default function TokenPurchaseForm({ setError }: TokenPurchaseFormProps) 
   const fetchExchangeRates = async () => {
     setIsLoadingRates(true)
     try {
-      // In a real application, replace this with an actual API call
-      const mockRates = { SOL: 0.000001, USDC: 0.001 }
-      setExchangeRates(mockRates)
+      const response = await fetch('https://api.example.com/milton/exchange-rates')
+      if (!response.ok) {
+        throw new Error('Failed to fetch exchange rates')
+      }
+      const data = await response.json()
+      setExchangeRates(data.rates)
     } catch (error) {
       console.error('Failed to fetch exchange rates:', error)
       toast({
-        title: "Failed to fetch exchange rates",
+        title: "Error fetching rates",
         description: "Please try again later.",
         variant: "destructive",
       })
@@ -91,22 +97,69 @@ export default function TokenPurchaseForm({ setError }: TokenPurchaseFormProps) 
     setIsSubmitting(true)
     setProgress(0)
     setError(null)
+    setTransactionStatus('processing')
 
     try {
       if (!publicKey || !signTransaction) {
         throw new Error("Wallet not connected")
       }
 
-      // In a real application, replace this with an actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Call the payment route API
+      const response = await fetch('/api/v1/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          publicKey: publicKey.toBase58(),
+          paymentMethod: selectedPaymentMethod.id,
+          amount: parseFloat(paymentAmount),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to process payment')
+      }
+
+      const { transaction: transactionBuffer } = await response.json()
+
+      // Deserialize the transaction
+      const connection = new Connection(
+        process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' 
+          ? 'https://api.devnet.solana.com' 
+          : 'https://api.mainnet-beta.solana.com'
+      )
+      const transaction = Transaction.from(Buffer.from(transactionBuffer, 'base64'))
+
+      setProgress(25)
+
+      // Sign the transaction
+      const signedTransaction = await signTransaction(transaction)
+
+      setProgress(50)
+
+      // Send the signed transaction
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize())
+
+      setProgress(75)
+
+      // Wait for confirmation
+      const confirmation = await connection.confirmTransaction(signature)
+
+      if (confirmation.value.err) {
+        throw new Error("Transaction failed")
+      }
 
       setProgress(100)
+      setTransactionStatus('success')
       toast({
         title: "Purchase Successful!",
-        description: `You have successfully purchased ${miltonAmount} MILTON tokens.`,
+        description: `You have successfully purchased ${miltonAmount} MILTON tokens. Transaction ID: ${signature}`,
       })
     } catch (error) {
       setError(error instanceof Error ? error.message : "An unknown error occurred")
+      setTransactionStatus('error')
       toast({
         title: "Transaction Failed",
         description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -118,102 +171,104 @@ export default function TokenPurchaseForm({ setError }: TokenPurchaseFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="milton-amount" className="flex items-center space-x-2 text-sm font-medium">
-          <Image src={MILTON_ICON_URL} alt="Milton Icon" width={20} height={20} />
-          <span>MILTON Amount</span>
-        </Label>
-        <Input
-          id="milton-amount"
-          type="number"
-          placeholder="Enter MILTON amount"
-          value={miltonAmount}
-          onChange={(e) => setMiltonAmount(e.target.value)}
-          disabled={isSubmitting}
-          className="w-full px-3 py-2 text-sm"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Payment Method</Label>
-        <RadioGroup
-          value={selectedPaymentMethod.id}
-          onValueChange={(value) => setSelectedPaymentMethod(paymentMethods.find(method => method.id === value) || paymentMethods[0])}
-          className="grid grid-cols-2 gap-4"
-        >
-          {paymentMethods.map((method) => (
-            <div key={method.id}>
-              <RadioGroupItem
-                value={method.id}
-                id={method.id}
-                className="peer sr-only"
-              />
-              <Label
-                htmlFor={method.id}
-                className="flex flex-col items-center justify-center h-24 rounded-md border-2 border-muted bg-popover hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all duration-200 ease-in-out"
-              >
-                <div className="flex flex-col items-center justify-center h-full">
-                  <Image
-                    src={method.icon}
-                    alt={method.name}
-                    width={32}
-                    height={32}
-                    className="mb-2"
+    <Card className="w-full max-w-md mx-auto bg-card">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">Purchase MILTON Tokens</CardTitle>
+        <CardDescription className="text-center">Enter the amount of MILTON you want to buy</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="milton-amount" className="flex items-center space-x-2 text-sm font-medium">
+              <Image src={MILTON_ICON_URL} alt="Milton Icon" width={20} height={20} />
+              <span>MILTON Amount</span>
+            </Label>
+            <Input
+              id="milton-amount"
+              type="number"
+              placeholder="Enter MILTON amount"
+              value={miltonAmount}
+              onChange={(e) => setMiltonAmount(e.target.value)}
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Payment Method</Label>
+            <RadioGroup
+              value={selectedPaymentMethod.id}
+              onValueChange={(value) => {
+                const newMethod = paymentMethods.find(method => method.id === value) || paymentMethods[0]
+                setSelectedPaymentMethod(newMethod)
+                toast({
+                  title: "Payment Method Changed",
+                  description: `You have selected ${newMethod.name}.`,
+                })
+              }}
+              className="grid grid-cols-2 gap-4"
+            >
+              {paymentMethods.map((method) => (
+                <div key={method.id}>
+                  <RadioGroupItem
+                    id={method.id}
+                    value={method.id}
+                    className="hidden"
                   />
-                  <span className="text-xs font-medium">{method.name}</span>
+                  <Label
+                    htmlFor={method.id}
+                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-400"
+                  >
+                    <Image src={method.icon} alt={method.name} width={40} height={40} />
+                    <span className="mt-2 text-sm font-semibold">{method.name}</span>
+                  </Label>
                 </div>
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="payment-amount" className="flex items-center space-x-2 text-sm font-medium">
-          <DollarSign className="h-4 w-4" />
-          <span>{selectedPaymentMethod.name} Equivalent</span>
-        </Label>
-        <Input
-          id="payment-amount"
-          type="text"
-          value={paymentAmount}
-          readOnly
-          disabled
-          className="w-full px-3 py-2 text-sm bg-muted"
-        />
-      </div>
-      <Button type="submit" className="w-full" disabled={!publicKey || isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing...
-          </>
-        ) : (
-          <>
-            Buy $MILTON
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </>
-        )}
-      </Button>
+              ))}
+            </RadioGroup>
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center space-x-2 text-sm font-medium">
+              <DollarSign />
+              <span>Amount ({selectedPaymentMethod.name})</span>
+            </Label>
+            <Input
+              type="text"
+              value={paymentAmount}
+              readOnly
+              className="w-full px-3 py-2 text-sm bg-gray-100 cursor-not-allowed"
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="animate-spin" /> : <ArrowRight className="mr-2" />}
+            {isSubmitting ? 'Processing...' : 'Purchase Tokens'}
+          </Button>
+          {transactionStatus === 'processing' && <Progress value={progress} className="w-full h-1" />}
+        </form>
+      </CardContent>
+      <CardFooter>
+        <Button variant="outline" onClick={fetchExchangeRates} disabled={isLoadingRates}>
+          <RefreshCw className="mr-2" />
+          {isLoadingRates ? 'Loading rates...' : 'Refresh Rates'}
+        </Button>
+      </CardFooter>
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Purchase</DialogTitle>
             <DialogDescription>
-              You are about to purchase {miltonAmount} MILTON tokens for {paymentAmount} {selectedPaymentMethod.name}.
+              You are about to purchase {miltonAmount} MILTON tokens using {selectedPaymentMethod.name} for a total of {paymentAmount} {selectedPaymentMethod.name}.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
+            <Button variant="destructive" onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </Button>
             <Button onClick={confirmPurchase} disabled={isSubmitting}>
-              {isSubmitting ? 'Processing...' : 'Confirm Purchase'}
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {isSubmitting && (
-        <Progress value={progress} className="w-full" />
-      )}
-    </form>
+    </Card>
   )
 }

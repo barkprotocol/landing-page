@@ -15,7 +15,7 @@ export const MILTON_MINT = new PublicKey('4DsZctdxSVNLGYB5YtY8A8JDg6tUoSZnQHSamX
 export const USDC_MINT = new PublicKey('Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr');
 
 // Milton program ID
-export const PROGRAM_ID = new PublicKey('YourProgramIdHere');
+export const PROGRAM_ID = new PublicKey('YourProgramIdHere'); // Update with actual program ID
 
 // Constants for your program
 export const MILTON_DECIMALS = 9;
@@ -93,4 +93,9 @@ if (!process.env.NEXT_PUBLIC_SOLANA_NETWORK) {
 
 if (!process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT) {
   console.warn('Using default RPC endpoint: ' + SOLANA_RPC_ENDPOINT);
+}
+
+// Ensure PROGRAM_ID is set
+if (PROGRAM_ID.equals(PublicKey.default)) {
+  console.warn('Warning: PROGRAM_ID is not set correctly. Please update it.');
 }
