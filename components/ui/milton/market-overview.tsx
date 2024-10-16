@@ -27,6 +27,21 @@ const formatLargeNumber = (num: number) => {
   return num.toString()
 }
 
+const StatCard = ({ icon: Icon, title, value, badgeContent, badgeVariant }) => (
+  <Card>
+    <CardContent className="flex flex-col items-center justify-center p-6">
+      <Icon className="h-8 w-8 text-primary mb-2" aria-hidden="true" />
+      <p className="text-sm font-medium text-muted-foreground">{title}</p>
+      <h3 className="text-2xl font-bold">{value}</h3>
+      {badgeContent && (
+        <Badge variant={badgeVariant} className="mt-2">
+          {badgeContent}
+        </Badge>
+      )}
+    </CardContent>
+  </Card>
+)
+
 export function MarketOverview() {
   const currentPrice = data[data.length - 1].price
   const previousPrice = data[data.length - 2].price
@@ -48,42 +63,34 @@ export function MarketOverview() {
       </CardHeader>
       <CardContent className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <DollarSign className="h-8 w-8 text-primary mb-2" aria-hidden="true" />
-              <p className="text-sm font-medium text-muted-foreground">Current Price</p>
-              <h3 className="text-2xl font-bold">${currentPrice.toFixed(2)}</h3>
-              <Badge variant={Number(priceChange) >= 0 ? "secondary" : "destructive"} className="mt-2">
-                {priceChange}%
-              </Badge>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <BarChart2 className="h-8 w-8 text-primary mb-2" aria-hidden="true" />
-              <p className="text-sm font-medium text-muted-foreground">Market Cap</p>
-              <h3 className="text-2xl font-bold">${formatLargeNumber(marketCap)}</h3>
-              <Badge variant="secondary" className="mt-2">Rank #420</Badge>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <Activity className="h-8 w-8 text-primary mb-2" aria-hidden="true" />
-              <p className="text-sm font-medium text-muted-foreground">24h Volume</p>
-              <h3 className="text-2xl font-bold">${formatLargeNumber(volume24h)}</h3>
-              <Badge variant={Number(volumeChange) >= 0 ? "secondary" : "destructive"} className="mt-2">
-                {volumeChange}%
-              </Badge>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <TrendingUp className="h-8 w-8 text-primary mb-2" aria-hidden="true" />
-              <p className="text-sm font-medium text-muted-foreground">All-Time High</p>
-              <h3 className="text-2xl font-bold">${allTimeHigh.toFixed(2)}</h3>
-              <Badge variant="secondary" className="mt-2">{daysAgo} days ago</Badge>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={DollarSign}
+            title="Current Price"
+            value={`$${currentPrice.toFixed(2)}`}
+            badgeContent={`${priceChange}%`}
+            badgeVariant={Number(priceChange) >= 0 ? 'secondary' : 'destructive'}
+          />
+          <StatCard
+            icon={BarChart2}
+            title="Market Cap"
+            value={`$${formatLargeNumber(marketCap)}`}
+            badgeContent="Rank #420"
+            badgeVariant="secondary"
+          />
+          <StatCard
+            icon={Activity}
+            title="24h Volume"
+            value={`$${formatLargeNumber(volume24h)}`}
+            badgeContent={`${volumeChange}%`}
+            badgeVariant={Number(volumeChange) >= 0 ? 'secondary' : 'destructive'}
+          />
+          <StatCard
+            icon={TrendingUp}
+            title="All-Time High"
+            value={`$${allTimeHigh.toFixed(2)}`}
+            badgeContent={`${daysAgo} days ago`}
+            badgeVariant="secondary"
+          />
         </div>
         <Card>
           <CardHeader>

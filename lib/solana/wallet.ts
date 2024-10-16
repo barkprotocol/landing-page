@@ -10,6 +10,7 @@ import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction, // To create associated token account
 } from '@solana/spl-token';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { SOLANA_RPC_ENDPOINT, TOKEN_INFO } from './constants';
@@ -155,14 +156,11 @@ export async function transferToken(
     }
 
     const transaction = new Transaction().add(
-      // Use Token.createTransferInstruction instead of SystemProgram.transfer for token transfers
-      Token.createTransferInstruction(
-        TOKEN_PROGRAM_ID,
-        sourceAccount,
-        destinationAccount,
+      createAssociatedTokenAccountInstruction(
         wallet.publicKey,
-        [],
-        amount * Math.pow(10, tokenInfo.decimals) // Adjusting amount based on decimals
+        destinationAccount,
+        recipient,
+        mintAddress
       )
     );
 
@@ -194,21 +192,21 @@ export async function createAssociatedTokenAccount(wallet: WalletContextState, m
   }
 
   try {
-    const associatedTokenAddress = await getAssociatedTokenAddress(mintAddress, wallet.publicKey);
+    const associatedTokenAddress = await getAssociatedTokenAddress(
+      mintAddress,
+      wallet.publicKey,
+      false, // Set to false for non-deprecated ATA creation
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
 
     const transaction = new Transaction().add(
-      SystemProgram.createAccount({
-        fromPubkey: wallet.publicKey,
-        newAccountPubkey: associatedTokenAddress,
-        space: 165,
-        lamports: await connection.getMinimumBalanceForRentExemption(165),
-        programId: TOKEN_PROGRAM_ID,
-      }),
-      // This is unnecessary for creating the associated token account, you can directly use createAccount instruction
-      SystemProgram.assign({
-        accountPubkey: associatedTokenAddress,
-        programId: TOKEN_PROGRAM_ID,
-      })
+      createAssociatedTokenAccountInstruction(
+        wallet.publicKey, // Payer
+        associatedTokenAddress,
+        wallet.publicKey, // Owner of the account
+        mintAddress // Token mint
+      )
     );
 
     transaction.feePayer = wallet.publicKey;

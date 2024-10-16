@@ -1,24 +1,25 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { Progress } from "@/components/ui/progress"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Coins, TrendingUp } from 'lucide-react'
+import React from 'react';
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Coins, TrendingUp } from 'lucide-react';
 
 interface StakingOverviewProps {
-  totalStaked: number
-  totalBalance: number
-  apy: number
-  rewardsEarned: number
+  totalStaked: number;
+  totalBalance: number;
+  apy: number;
+  rewardsEarned: number;
 }
 
-export default function Component({ 
+export default function StakingOverview({ 
   totalStaked = 2345, 
   totalBalance = 28500, 
   apy = 12.5, 
   rewardsEarned = 45.67 
 }: StakingOverviewProps) {
-  const stakingPercentage = (totalStaked / totalBalance) * 100
+  // Calculate staking percentage
+  const stakingPercentage = totalBalance ? (totalStaked / totalBalance) * 100 : 0;
 
   return (
     <Card>
@@ -52,10 +53,10 @@ export default function Component({
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-sm text-muted-foreground">Rewards Earned</span>
-            <span className="font-bold">{rewardsEarned.toLocaleString()} MLT</span>
+            <span className="font-bold">{rewardsEarned.toLocaleString()} MILTON</span>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

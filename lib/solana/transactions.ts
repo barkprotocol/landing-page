@@ -1,12 +1,25 @@
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  Keypair,
+  Signer,
+} from '@solana/web3.js';
+import { 
+  TOKEN_PROGRAM_ID, 
+  createTransferInstruction, 
+  getOrCreateAssociatedTokenAccount, 
+  getMint 
+} from '@solana/spl-token';
 
 // Set up the connection to the Solana blockchain using the specified RPC URL
 const SOLANA_RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
 interface CreateTransactionParams {
-  sender: string;    // The public key of the sender
+  sender: Signer;    // The signer of the transaction (Keypair or other Signer)
   recipient: string; // The public key of the recipient
   amount: number;    // The amount to transfer (in SOL or tokens)
   token: string;     // 'SOL' for SOL transfers, or token mint address for SPL tokens
@@ -25,7 +38,7 @@ export async function createTransaction({ sender, recipient, amount, token }: Cr
     throw new Error('Amount must be greater than zero.');
   }
 
-  const senderPublicKey = new PublicKey(sender);
+  const senderPublicKey = sender.publicKey; // Use the public key from the signer
   const recipientPublicKey = new PublicKey(recipient);
   
   let transaction = new Transaction();
@@ -47,22 +60,32 @@ export async function createTransaction({ sender, recipient, amount, token }: Cr
     } else {
       // For SPL token transfers
       const tokenPublicKey = new PublicKey(token);
-      const tokenAccount = new Token(connection, tokenPublicKey, TOKEN_PROGRAM_ID, senderPublicKey);
-
-      // Get or create associated token accounts for sender and recipient
-      const senderTokenAccount = await tokenAccount.getOrCreateAssociatedAccountInfo(senderPublicKey);
-      const recipientTokenAccount = await tokenAccount.getOrCreateAssociatedAccountInfo(recipientPublicKey);
+      const senderTokenAccount = await getOrCreateAssociatedTokenAccount(
+        connection,
+        sender,
+        tokenPublicKey,
+        senderPublicKey
+      );
+      const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
+        connection,
+        sender,
+        tokenPublicKey,
+        recipientPublicKey
+      );
 
       // Get the token's mint information to retrieve decimals
-      const { decimals } = await tokenAccount.getMintInfo();
+      const mintInfo = await getMint(connection, tokenPublicKey);
+      const decimals = mintInfo.decimals;
+
+      // Create transfer instruction
       transaction.add(
-        Token.createTransferInstruction(
-          TOKEN_PROGRAM_ID,
+        createTransferInstruction(
           senderTokenAccount.address,
           recipientTokenAccount.address,
           senderPublicKey,
+          amount * Math.pow(10, decimals), // Adjusting amount based on decimals
           [],
-          amount * Math.pow(10, decimals) // Adjusting amount based on decimals
+          TOKEN_PROGRAM_ID
         )
       );
     }

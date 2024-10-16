@@ -7,7 +7,7 @@ import {
   ActionPostResponse,
   LinkedAction,
 } from '@solana/actions';
-import { jupiterApi } from '../swap';
+import { jupiterApi } from './pages/swap';
 import { rateLimit } from '@/lib/rate-limit';
 
 const MILTON_LOGO = process.env.MILTON_LOGO || 'https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg/-/preview/1000x981/-/quality/smart/-/format/auto/';
@@ -139,8 +139,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as ActionPostRequest;
     const { account } = body;
 
-    if (!account) {
-      return NextResponse.json({ error: 'Account is required' }, { status: 400 });
+    // Account validation using Solana's PublicKey class
+    if (!account || !PublicKey.isOnCurve(new PublicKey(account))) {
+      return NextResponse.json({ error: 'Invalid or missing account.' }, { status: 400 });
     }
 
     const tokenUsdPrices = await jupiterApi.getTokenPricesInUsdc([inputTokenMeta.address]);
