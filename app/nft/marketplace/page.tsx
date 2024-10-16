@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { fetchAvailableNFTs, buyNFT } from '@/lib/api/marketplace';
@@ -8,15 +8,19 @@ import { Card } from '@/components/ui/mint-nft-card';
 const MarketplacePage: React.FC = () => {
   const [nfts, setNfts] = useState<any[]>([]); // Adjust the type as per your NFT data structure
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch available NFTs when the component mounts
   useEffect(() => {
     const fetchNFTs = async () => {
+      setLoading(true);
+      setError(null); // Reset error state before fetching
       try {
         const availableNFTs = await fetchAvailableNFTs();
         setNfts(availableNFTs);
       } catch (error) {
         console.error('Failed to fetch NFTs:', error);
+        setError('Failed to load NFTs. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -27,13 +31,14 @@ const MarketplacePage: React.FC = () => {
 
   const handleBuyNFT = async (nftId: string) => {
     setLoading(true);
+    setError(null); // Reset error state before the purchase
     try {
       await buyNFT(nftId);
-      // Optionally refetch or update the state after purchase
-      const updatedNFTs = nfts.filter(nft => nft.id !== nftId);
-      setNfts(updatedNFTs);
+      // Update the state after purchase
+      setNfts((prevNfts) => prevNfts.filter(nft => nft.id !== nftId));
     } catch (error) {
       console.error('Failed to buy NFT:', error);
+      setError('Failed to purchase NFT. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -45,6 +50,8 @@ const MarketplacePage: React.FC = () => {
 
       {loading ? (
         <p>Loading NFTs...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {nfts.map(nft => (
