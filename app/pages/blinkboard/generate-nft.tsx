@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Button, Input } from '@/components/ui/wallet-button'; 
 import { createNFT } from '@/components/blinkboard/create-nft-form';

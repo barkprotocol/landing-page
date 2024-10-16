@@ -1,5 +1,4 @@
-// ./app/demo/page.tsx
-"use client"; // Mark this as a Client Component
+"use client";
 
 import { useEffect, useState } from 'react';
 

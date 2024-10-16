@@ -1,3 +1,5 @@
+"use client";
+
 import { MiltonServices, MiltonInfo } from '@/components/services/milton'
 import { Toaster } from "@/components/ui/toaster"
 

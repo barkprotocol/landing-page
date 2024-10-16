@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { fetchAvailableNFTs, buyNFT } from '@/lib/api/marketplace';
-import { Button } from '@/components/ui';
-import { Card } from '@/components/ui/nft-card';
+import { WalletButton } from '@/components/ui/wallet-button';
+import { Card } from '@/components/ui/mint-nft-card';
 
 const MarketplacePage: React.FC = () => {
   const [nfts, setNfts] = useState<any[]>([]); // Adjust the type as per your NFT data structure
@@ -49,9 +49,9 @@ const MarketplacePage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {nfts.map(nft => (
             <Card key={nft.id} nft={nft}>
-              <Button onClick={() => handleBuyNFT(nft.id)} className="mt-2">
+              <WalletButton onClick={() => handleBuyNFT(nft.id)} className="mt-2">
                 Buy NFT
-              </Button>
+              </WalletButton>
             </Card>
           ))}
         </div>
