@@ -1,80 +1,100 @@
-import express from 'express';
-import { body, validationResult } from 'express-validator';
-import { createUser, getUser, updateUser, deleteUser } from './user-controller';
+import { NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
+import { z } from 'zod';
+import { connectToDatabase } from '@/lib/mongodb';
 
-const router = express.Router();
-
-// @route   POST api/users/register
-// @desc    Register new user
-// @access  Public
-router.post(
-  '/register',
-  [
-    body('email', 'Please include a valid email').isEmail(),
-    body('password', 'Password is required').isLength({ min: 6 })
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-      const user = await createUser(req.body);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  }
-);
-
-// @route   GET api/users/:id
-// @desc    Get user by ID
-// @access  Public
-router.get('/:id', async (req, res) => {
-  try {
-    const user = await getUser(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(user);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
+// User schema for validation
+const userSchema = z.object({
+  username: z.string().min(3).max(20),
+  email: z.string().email(),
+  password: z.string().min(6),
 });
 
-// @route   PUT api/users/:id
-// @desc    Update user
-// @access  Private
-router.put('/:id', async (req, res) => {
+export async function GET(request: Request) {
   try {
-    const updatedUser = await updateUser(req.params.id, req.body);
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(updatedUser);
+    const { db } = await connectToDatabase();
+    const users = await db.collection('users').find({}).project({ password: 0 }).toArray();
+    return NextResponse.json(users);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Failed to fetch users:', error);
+    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
-});
+}
 
-// @route   DELETE api/users/:id
-// @desc    Delete user
-// @access  Private
-router.delete('/:id', async (req, res) => {
+export async function POST(request: Request) {
   try {
-    const deletedUser = await deleteUser(req.params.id);
-    if (!deletedUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json({ message: 'User deleted' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+    const body = await request.json();
+    const validatedData = userSchema.parse(body);
 
-export default router;
+    const { db } = await connectToDatabase();
+    const existingUser = await db.collection('users').findOne({ email: validatedData.email });
+
+    if (existingUser) {
+      return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+    }
+
+    const result = await db.collection('users').insertOne(validatedData);
+    return NextResponse.json({ id: result.insertedId, ...validatedData }, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    console.error('Failed to create user:', error);
+    return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const validatedData = userSchema.partial().parse(body);
+
+    const { db } = await connectToDatabase();
+    const result = await db.collection('users').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: validatedData }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'User updated successfully' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    console.error('Failed to update user:', error);
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    const { db } = await connectToDatabase();
+    const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Failed to delete user:', error);
+    return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+  }
+}

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from '@solana/spl-token'
 import { z } from 'zod'
@@ -7,15 +7,29 @@ import { z } from 'zod'
 const SOLANA_NETWORK = process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet'
 const MILTON_MINT = new PublicKey(process.env.NEXT_PUBLIC_MILTON_MINT || '')
 const TREASURY_WALLET = new PublicKey(process.env.TREASURY_WALLET || '')
+const USDC_MINT = new PublicKey(process.env.USDC_MINT || 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+const MAX_TRANSACTION_AMOUNT = 1000 // Maximum transaction amount in SOL or USDC
 
 // Validation schema
 const PaymentSchema = z.object({
-  publicKey: z.string(),
+  publicKey: z.string().refine(
+    (value) => {
+      try {
+        new PublicKey(value)
+        return true
+      } catch {
+        return false
+      }
+    },
+    {
+      message: 'Invalid Solana public key',
+    }
+  ),
   paymentMethod: z.enum(['SOL', 'USDC']),
-  amount: z.number().positive(),
+  amount: z.number().positive().max(MAX_TRANSACTION_AMOUNT),
 })
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { publicKey, paymentMethod, amount } = PaymentSchema.parse(body)
@@ -23,7 +37,8 @@ export async function POST(request: Request) {
     const connection = new Connection(
       SOLANA_NETWORK === 'devnet' 
         ? 'https://api.devnet.solana.com' 
-        : 'https://api.mainnet-beta.solana.com'
+        : 'https://api.mainnet-beta.solana.com',
+      'confirmed'
     )
 
     const buyerPublicKey = new PublicKey(publicKey)
@@ -35,13 +50,12 @@ export async function POST(request: Request) {
         SystemProgram.transfer({
           fromPubkey: buyerPublicKey,
           toPubkey: TREASURY_WALLET,
-          lamports: amount * LAMPORTS_PER_SOL,
+          lamports: Math.round(amount * LAMPORTS_PER_SOL),
         })
       )
     } else if (paymentMethod === 'USDC') {
-      const usdcMint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v') // USDC mint address
-      const buyerUsdcAddress = await getAssociatedTokenAddress(usdcMint, buyerPublicKey)
-      const treasuryUsdcAddress = await getAssociatedTokenAddress(usdcMint, TREASURY_WALLET)
+      const buyerUsdcAddress = await getAssociatedTokenAddress(USDC_MINT, buyerPublicKey)
+      const treasuryUsdcAddress = await getAssociatedTokenAddress(USDC_MINT, TREASURY_WALLET)
 
       // Check if the treasury has an associated token account for USDC
       const treasuryUsdcAccount = await connection.getAccountInfo(treasuryUsdcAddress)
@@ -51,7 +65,7 @@ export async function POST(request: Request) {
             buyerPublicKey,
             treasuryUsdcAddress,
             TREASURY_WALLET,
-            usdcMint
+            USDC_MINT
           )
         )
       }
@@ -61,7 +75,7 @@ export async function POST(request: Request) {
           buyerUsdcAddress,
           treasuryUsdcAddress,
           buyerPublicKey,
-          amount * 1_000_000 // USDC has 6 decimal places
+          Math.round(amount * 1_000_000) // USDC has 6 decimal places
         )
       )
     }
@@ -96,20 +110,37 @@ export async function POST(request: Request) {
     )
 
     // Get a recent blockhash
-    const { blockhash } = await connection.getLatestBlockhash()
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
     transaction.recentBlockhash = blockhash
+    transaction.lastValidBlockHeight = lastValidBlockHeight
     transaction.feePayer = buyerPublicKey
 
     // Serialize the transaction
     const serializedTransaction = transaction.serialize({ requireAllSignatures: false })
     const base64Transaction = serializedTransaction.toString('base64')
 
-    return NextResponse.json({ transaction: base64Transaction })
+    return NextResponse.json({ 
+      transaction: base64Transaction,
+      lastValidBlockHeight,
+    })
   } catch (error) {
     console.error('Payment processing error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Failed to process payment' },
       { status: 500 }
     )
   }
+}
+
+export async function GET(request: NextRequest) {
+  return NextResponse.json(
+    { error: 'Method not allowed' },
+    { status: 405 }
+  )
 }

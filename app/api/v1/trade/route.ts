@@ -1,89 +1,177 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
-import { db } from '@/lib/db/drizzle';
-import { trades } from '@/lib/db/schema'; // Assuming you have a trades schema defined
-import { eq } from 'drizzle-orm';
+import { NextRequest, NextResponse } from 'next/server'
+import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js'
+import { getOrCreateAssociatedTokenAccount, createTransferInstruction, getMint } from '@solana/spl-token'
+import { z } from 'zod'
 
-// Function to handle GET requests to fetch user trades
-async function handleGetTrades(userId: string) {
-  const userTrades = await db.query.trades.findMany({
-    where: eq(trades.userId, userId),
-    columns: {
-      id: true,
-      amount: true,
-      asset: true,
-      tradeType: true, // e.g., buy/sell
-      createdAt: true,
-      status: true,
-    },
-  });
+const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'devnet' 
+  ? 'https://api.devnet.solana.com' 
+  : 'https://api.mainnet-beta.solana.com'
+const MILTON_TOKEN_MINT = process.env.MILTON_TOKEN_MINT
+const AUTHORITY_PRIVATE_KEY = process.env.AUTHORITY_PRIVATE_KEY
 
-  return userTrades.map(trade => ({
-    id: trade.id,
-    amount: trade.amount,
-    asset: trade.asset,
-    tradeType: trade.tradeType,
-    date: trade.createdAt.toISOString(),
-    status: trade.status,
-  }));
+if (!MILTON_TOKEN_MINT || !AUTHORITY_PRIVATE_KEY) {
+  throw new Error('Required environment variables are not set')
 }
 
-// Function to handle POST requests to execute a trade
-async function handlePostTrade(body: any, userId: string) {
-  const { amount, asset, tradeType } = body;
+const connection = new Connection(SOLANA_RPC_ENDPOINT, 'confirmed')
+const authorityKeypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(AUTHORITY_PRIVATE_KEY)))
 
-  // Basic validation
-  if (!amount || !asset || !tradeType) {
-    return { error: 'Amount, asset, and tradeType are required.' };
-  }
+const CreateOrderSchema = z.object({
+  traderAddress: z.string(),
+  orderType: z.enum(['buy', 'sell']),
+  amount: z.number().positive(),
+  price: z.number().positive(),
+})
 
-  // Logic to execute trade (e.g., integrate with a trading service or execute logic)
-  const newTrade = await db.insert(trades).values({
-    userId,
-    amount,
-    asset,
-    tradeType,
-    status: 'pending', // Default status
-    createdAt: new Date(),
-  });
+const ExecuteTradeSchema = z.object({
+  buyOrderId: z.string(),
+  sellOrderId: z.string(),
+})
 
-  return newTrade;
-}
+// In-memory storage for orders (replace with a database in a real-world scenario)
+const orders = new Map<string, {
+  id: string;
+  traderAddress: string;
+  orderType: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  status: 'open' | 'filled' | 'cancelled';
+}>()
 
-// Main handler function for the API route
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession({ req: request }, authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+export async function POST(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-    const body = await request.json();
-    const tradeResult = await handlePostTrade(body, session.user.id);
-
-    if (tradeResult.error) {
-      return NextResponse.json({ error: tradeResult.error }, { status: 400 });
-    }
-
-    return NextResponse.json({ message: 'Trade executed successfully!', trade: tradeResult }, { status: 201 });
-  } catch (error) {
-    console.error('Error executing trade:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  if (pathname.endsWith('/create-order')) {
+    return handleCreateOrder(request)
+  } else if (pathname.endsWith('/execute-trade')) {
+    return handleExecuteTrade(request)
+  } else {
+    return NextResponse.json({ error: 'Invalid endpoint' }, { status: 404 })
   }
 }
 
-export async function GET(request: Request) {
+async function handleCreateOrder(request: NextRequest) {
   try {
-    const session = await getServerSession({ req: request }, authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    const body = await request.json()
+    const { traderAddress, orderType, amount, price } = CreateOrderSchema.parse(body)
+
+    const orderId = Math.random().toString(36).substring(2, 15)
+    orders.set(orderId, {
+      id: orderId,
+      traderAddress,
+      orderType,
+      amount,
+      price,
+      status: 'open',
+    })
+
+    return NextResponse.json({
+      success: true,
+      orderId,
+      message: `${orderType.toUpperCase()} order created successfully`,
+    })
+  } catch (error) {
+    console.error('Create order error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input parameters', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
+}
+
+async function handleExecuteTrade(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { buyOrderId, sellOrderId } = ExecuteTradeSchema.parse(body)
+
+    const buyOrder = orders.get(buyOrderId)
+    const sellOrder = orders.get(sellOrderId)
+
+    if (!buyOrder || !sellOrder) {
+      return NextResponse.json({ error: 'Invalid order IDs' }, { status: 400 })
     }
 
-    const trades = await handleGetTrades(session.user.id);
-    return NextResponse.json(trades, { status: 200 });
+    if (buyOrder.status !== 'open' || sellOrder.status !== 'open') {
+      return NextResponse.json({ error: 'One or both orders are not open' }, { status: 400 })
+    }
+
+    if (buyOrder.price < sellOrder.price) {
+      return NextResponse.json({ error: 'Buy price is lower than sell price' }, { status: 400 })
+    }
+
+    const tradeAmount = Math.min(buyOrder.amount, sellOrder.amount)
+    const tradePrice = (buyOrder.price + sellOrder.price) / 2
+
+    const miltonTokenMint = new PublicKey(MILTON_TOKEN_MINT)
+    const buyerPublicKey = new PublicKey(buyOrder.traderAddress)
+    const sellerPublicKey = new PublicKey(sellOrder.traderAddress)
+
+    const mintInfo = await getMint(connection, miltonTokenMint)
+    const tokenAmount = tradeAmount * Math.pow(10, mintInfo.decimals)
+
+    const buyerATA = await getOrCreateAssociatedTokenAccount(
+      connection,
+      authorityKeypair,
+      miltonTokenMint,
+      buyerPublicKey
+    )
+
+    const sellerATA = await getOrCreateAssociatedTokenAccount(
+      connection,
+      authorityKeypair,
+      miltonTokenMint,
+      sellerPublicKey
+    )
+
+    const transferInstruction = createTransferInstruction(
+      sellerATA.address,
+      buyerATA.address,
+      sellerPublicKey,
+      tokenAmount
+    )
+
+    const transaction = new Transaction().add(transferInstruction)
+    transaction.feePayer = authorityKeypair.publicKey
+    const { blockhash } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
+
+    const signature = await connection.sendTransaction(transaction, [authorityKeypair])
+    await connection.confirmTransaction(signature)
+
+    // Update order statuses
+    buyOrder.amount -= tradeAmount
+    sellOrder.amount -= tradeAmount
+    
+    if (buyOrder.amount === 0) buyOrder.status = 'filled'
+    if (sellOrder.amount === 0) sellOrder.status = 'filled'
+
+    orders.set(buyOrderId, buyOrder)
+    orders.set(sellOrderId, sellOrder)
+
+    return NextResponse.json({
+      success: true,
+      signature,
+      message: `Trade executed successfully. ${tradeAmount} MILTON tokens traded at ${tradePrice} SOL each.`,
+    })
   } catch (error) {
-    console.error('Error fetching trades:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Execute trade error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input parameters', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const orderId = request.nextUrl.searchParams.get('orderId')
+
+  if (orderId) {
+    const order = orders.get(orderId)
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+    return NextResponse.json(order)
+  } else {
+    return NextResponse.json(Array.from(orders.values()))
   }
 }

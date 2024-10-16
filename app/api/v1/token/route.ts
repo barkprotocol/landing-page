@@ -1,54 +1,151 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { Connection, Keypair, PublicKey } from '@solana/web3.js'
+import { createMint, getMint, mintTo, getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
+import { z } from 'zod'
 
-// Sample data to simulate tokens
-const tokens = [
-  {
-    id: 1,
-    name: "MILTON",
-    symbol: "MILTON",
-    totalSupply: 18460000000,
-    price: 0.0000001, // Price in SOL
-    createdAt: new Date("2024-11-01T12:00:00Z"),
-  },
-  {
-    id: 2,
-    name: "TokenX",
-    symbol: "TX",
-    totalSupply: 5000000,
-    price: 0.000005, // Price in SOL
-    createdAt: new Date("2024-10-05T12:00:00Z"),
-  },
-];
+const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || 'https://api.devnet.solana.com'
+const TOKEN_CREATOR_PRIVATE_KEY = process.env.TOKEN_CREATOR_PRIVATE_KEY
 
-// Handler for GET requests
-export async function GET() {
-  return NextResponse.json(tokens);
+if (!TOKEN_CREATOR_PRIVATE_KEY) {
+  throw new Error('TOKEN_CREATOR_PRIVATE_KEY environment variable is not set')
 }
 
-// Handler for POST requests
-export async function POST(request: Request) {
-  const { name, symbol, totalSupply, price } = await request.json();
+const connection = new Connection(SOLANA_RPC_ENDPOINT, 'confirmed')
+const tokenCreatorKeypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(TOKEN_CREATOR_PRIVATE_KEY)))
 
-  // Basic validation
-  if (!name || !symbol || !totalSupply || !price) {
-    return NextResponse.json(
-      { message: "All fields are required." },
-      { status: 400 }
-    );
+const TokenCreateSchema = z.object({
+  name: z.string().min(1).max(32),
+  symbol: z.string().min(1).max(10),
+  decimals: z.number().int().min(0).max(9),
+  initialSupply: z.number().int().min(0).optional(),
+})
+
+const TokenMintSchema = z.object({
+  mintAddress: z.string(),
+  amount: z.number().int().positive(),
+  recipientAddress: z.string().optional(),
+})
+
+export async function POST(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  if (pathname.endsWith('/create')) {
+    return handleTokenCreate(request)
+  } else if (pathname.endsWith('/mint')) {
+    return handleTokenMint(request)
+  } else {
+    return NextResponse.json({ error: 'Invalid endpoint' }, { status: 404 })
+  }
+}
+
+async function handleTokenCreate(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { name, symbol, decimals, initialSupply } = TokenCreateSchema.parse(body)
+
+    const mint = await createMint(
+      connection,
+      tokenCreatorKeypair,
+      tokenCreatorKeypair.publicKey,
+      tokenCreatorKeypair.publicKey,
+      decimals
+    )
+
+    if (initialSupply && initialSupply > 0) {
+      const tokenAccount = await getOrCreateAssociatedTokenAccount(
+        connection,
+        tokenCreatorKeypair,
+        mint,
+        tokenCreatorKeypair.publicKey
+      )
+
+      await mintTo(
+        connection,
+        tokenCreatorKeypair,
+        mint,
+        tokenAccount.address,
+        tokenCreatorKeypair,
+        initialSupply
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      mintAddress: mint.toBase58(),
+      name,
+      symbol,
+      decimals,
+      initialSupply: initialSupply || 0,
+    })
+  } catch (error) {
+    console.error('Token creation error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input parameters', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
+}
+
+async function handleTokenMint(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { mintAddress, amount, recipientAddress } = TokenMintSchema.parse(body)
+
+    const mintPublicKey = new PublicKey(mintAddress)
+    const recipientPublicKey = recipientAddress ? new PublicKey(recipientAddress) : tokenCreatorKeypair.publicKey
+
+    const tokenAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      tokenCreatorKeypair,
+      mintPublicKey,
+      recipientPublicKey
+    )
+
+    await mintTo(
+      connection,
+      tokenCreatorKeypair,
+      mintPublicKey,
+      tokenAccount.address,
+      tokenCreatorKeypair,
+      amount
+    )
+
+    return NextResponse.json({
+      success: true,
+      mintAddress,
+      amount,
+      recipientAddress: recipientPublicKey.toBase58(),
+    })
+  } catch (error) {
+    console.error('Token minting error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input parameters', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const mintAddress = request.nextUrl.searchParams.get('mintAddress')
+
+  if (!mintAddress) {
+    return NextResponse.json({ error: 'Missing mint address' }, { status: 400 })
   }
 
-  // Create a new token object
-  const newToken = {
-    id: tokens.length + 1,
-    name,
-    symbol,
-    totalSupply,
-    price,
-    createdAt: new Date(),
-  };
+  try {
+    const mintPublicKey = new PublicKey(mintAddress)
+    const tokenInfo = await getMint(connection, mintPublicKey)
 
-  // Push the new token to the tokens array (for demonstration purposes)
-  tokens.push(newToken);
-
-  return NextResponse.json(newToken, { status: 201 });
+    return NextResponse.json({
+      mintAddress: mintAddress,
+      supply: tokenInfo.supply.toString(),
+      decimals: tokenInfo.decimals,
+      isInitialized: tokenInfo.isInitialized,
+      freezeAuthority: tokenInfo.freezeAuthority?.toBase58() || null,
+      mintAuthority: tokenInfo.mintAuthority?.toBase58() || null,
+    })
+  } catch (error) {
+    console.error('Token info retrieval error:', error)
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
 }

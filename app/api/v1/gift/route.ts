@@ -1,104 +1,113 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
-import { db } from '@/lib/db/drizzle';
-import { gifts, users } from '@/lib/db/schema'; // Adjust according to your schema
-import { eq } from 'drizzle-orm';
+import { NextRequest, NextResponse } from 'next/server'
+import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js'
+import { getOrCreateAssociatedTokenAccount, createTransferInstruction } from '@solana/spl-token'
+import { z } from 'zod'
 
-// Function to handle sending a gift
-async function handleSendGift(body: any, senderId: string) {
-  const { recipientEmail, amount, message } = body;
+const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || 'https://api.devnet.solana.com'
+const GIFT_TOKEN_MINT = process.env.GIFT_TOKEN_MINT
+const GIFT_AUTHORITY_PRIVATE_KEY = process.env.GIFT_AUTHORITY_PRIVATE_KEY
 
-  // Basic validation
-  if (!recipientEmail || !amount) {
-    return { error: 'Recipient email and amount are required.' };
-  }
-
-  // Logic to find the recipient by email
-  const recipient = await db.query.users.findFirst({
-    where: eq(users.email, recipientEmail),
-    columns: {
-      id: true,
-    },
-  });
-
-  if (!recipient) {
-    return { error: 'Recipient not found.' };
-  }
-
-  // Insert the gift into the database
-  const newGift = await db.insert(gifts).values({
-    senderId,
-    recipientId: recipient.id,
-    amount,
-    message,
-    createdAt: new Date(),
-  });
-
-  return newGift;
+if (!GIFT_TOKEN_MINT || !GIFT_AUTHORITY_PRIVATE_KEY) {
+  throw new Error('GIFT_TOKEN_MINT or GIFT_AUTHORITY_PRIVATE_KEY environment variable is not set')
 }
 
-// Function to handle fetching gift history for a user
-async function handleGetGiftHistory(userId: string) {
-  const giftHistory = await db.query.gifts.findMany({
-    where: eq(gifts.senderId, userId),
-    with: {
-      recipient: {
-        columns: {
-          email: true,
-        },
-      },
-    },
-    columns: {
-      id: true,
-      amount: true,
-      message: true,
-      createdAt: true,
-    },
-  });
+const connection = new Connection(SOLANA_RPC_ENDPOINT, 'confirmed')
 
-  return giftHistory.map(gift => ({
-    id: gift.id,
-    amount: gift.amount,
-    message: gift.message,
-    date: gift.createdAt.toISOString(),
-    recipientEmail: gift.recipient.email,
-  }));
-}
+const GiftSchema = z.object({
+  recipientAddress: z.string(),
+  amount: z.number().int().positive(),
+})
 
-// Main handler function for the API route
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession({ req: request }, authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    const body = await request.json()
+    const { recipientAddress, amount } = GiftSchema.parse(body)
+
+    // Validate recipient address
+    let recipientPublicKey: PublicKey
+    try {
+      recipientPublicKey = new PublicKey(recipientAddress)
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid recipient address' }, { status: 400 })
     }
 
-    const body = await request.json();
-    const giftResult = await handleSendGift(body, session.user.id);
+    // Create gift authority keypair
+    const giftAuthorityKeypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(GIFT_AUTHORITY_PRIVATE_KEY)))
 
-    if (giftResult.error) {
-      return NextResponse.json({ error: giftResult.error }, { status: 400 });
-    }
+    // Get or create associated token accounts
+    const giftTokenMint = new PublicKey(GIFT_TOKEN_MINT)
+    const giftAuthorityATA = await getOrCreateAssociatedTokenAccount(
+      connection,
+      giftAuthorityKeypair,
+      giftTokenMint,
+      giftAuthorityKeypair.publicKey
+    )
 
-    return NextResponse.json({ message: 'Gift sent successfully!', gift: giftResult }, { status: 201 });
+    const recipientATA = await getOrCreateAssociatedTokenAccount(
+      connection,
+      giftAuthorityKeypair,
+      giftTokenMint,
+      recipientPublicKey
+    )
+
+    // Create transfer instruction
+    const transferInstruction = createTransferInstruction(
+      giftAuthorityATA.address,
+      recipientATA.address,
+      giftAuthorityKeypair.publicKey,
+      amount
+    )
+
+    // Create and send transaction
+    const transaction = new Transaction().add(transferInstruction)
+    const { blockhash } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
+    transaction.feePayer = giftAuthorityKeypair.publicKey
+
+    const signature = await connection.sendTransaction(transaction, [giftAuthorityKeypair])
+    await connection.confirmTransaction(signature)
+
+    return NextResponse.json({
+      success: true,
+      signature,
+      recipientAddress: recipientPublicKey.toBase58(),
+      amount,
+    })
   } catch (error) {
-    console.error('Error sending gift:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Gift distribution error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input parameters', details: error.errors }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }
 }
 
-export async function GET(request: Request) {
-  try {
-    const session = await getServerSession({ req: request }, authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+export async function GET(request: NextRequest) {
+  const recipientAddress = request.nextUrl.searchParams.get('recipientAddress')
 
-    const giftHistory = await handleGetGiftHistory(session.user.id);
-    return NextResponse.json(giftHistory, { status: 200 });
+  if (!recipientAddress) {
+    return NextResponse.json({ error: 'Missing recipient address' }, { status: 400 })
+  }
+
+  try {
+    const recipientPublicKey = new PublicKey(recipientAddress)
+    const giftTokenMint = new PublicKey(GIFT_TOKEN_MINT)
+
+    const recipientATA = await getOrCreateAssociatedTokenAccount(
+      connection,
+      Keypair.generate(), // Dummy keypair for read-only operations
+      giftTokenMint,
+      recipientPublicKey
+    )
+
+    const balance = await connection.getTokenAccountBalance(recipientATA.address)
+
+    return NextResponse.json({
+      recipientAddress: recipientPublicKey.toBase58(),
+      balance: balance.value.uiAmount,
+    })
   } catch (error) {
-    console.error('Error fetching gift history:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Gift balance check error:', error)
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }
 }

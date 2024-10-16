@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferCheckedInstruction, getMint } from '@solana/spl-token'
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, MEMO_PROGRAM_ID, MILTON_MINT_ADDRESS } from '@/lib/solana/programs'
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, MEMO_PROGRAM_ID, MILTON_MINT_ADDRESS } from '@/lib/milton/programs'
 import { z } from 'zod'
 import { rateLimit } from '@/lib/rate-limit'
 import { CustomError, ErrorType } from '@/lib/custom-error'
@@ -9,7 +9,7 @@ import { Logger } from '@/lib/logger'
 import jwt from 'jsonwebtoken'
 import { createHmac } from 'crypto'
 import prisma from '@/lib/prisma'
-import { getTokenAccountBalance } from '@/lib/solana/milton-token-utils'
+import { getTokenAccountBalance } from '@/lib/milton/programs/milton-token-utils'
 
 const connection = new Connection(process.env.HELIUS_RPC_URL || process.env.SOLANA_RPC_URL!)
 const logger = new Logger('api/milton/transfer')

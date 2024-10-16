@@ -9,8 +9,8 @@ import { createHmac } from 'crypto'
 import { Logger } from '@/lib/logger'
 import { CustomError, ErrorType } from '@/lib/custom-error'
 import prisma from '@/lib/prisma'
-import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM, ASSOCIATED_TOKEN_PROGRAM_ID, MEMO_PROGRAM_ID, MILTON_MINT_ADDRESS, USDC_TOKEN_ADDRESS } from '@/lib/solana/programs'
-import { getTokenAccountBalance } from '@/lib/solana/milton-token-utils'
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM, ASSOCIATED_TOKEN_PROGRAM_ID, MEMO_PROGRAM_ID, MILTON_MINT_ADDRESS, USDC_TOKEN_ADDRESS } from '@/lib/milton/programs'
+import { getTokenAccountBalance } from '@/lib/milton/programs/milton-token-utils'
 import axios from 'axios'
 
 const TREASURY_WALLET_ADDRESS = new PublicKey(process.env.TREASURY_WALLET_ADDRESS!)

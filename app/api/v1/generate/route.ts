@@ -5,7 +5,7 @@ import {
 } from '@metaplex-foundation/mpl-token-metadata';
 import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
 import { CustomError, ErrorType } from '@/lib/custom-error'; // Adjusted import path
-import { getWallet } from '@/lib/solana/solana'; // Adjusted import path
+import { getWallet } from '@/lib/solana/solana-pay-utils'; // Adjusted import path
 
 const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL, 'confirmed');
 

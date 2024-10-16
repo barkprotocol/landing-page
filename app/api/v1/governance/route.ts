@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { PublicKey } from '@solana/web3.js';
-import { processGovernanceAction } from '@/lib/governance/actions';
+import { processGovernanceAction } from '@/lib/milton/governance/actions';
 
 // Define a schema for validating incoming requests
 const governanceActionSchema = z.object({

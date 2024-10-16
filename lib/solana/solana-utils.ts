@@ -1,110 +1,143 @@
 import {
   Connection,
-  Keypair,
-  Transaction,
   PublicKey,
+  Transaction,
   SystemProgram,
+  LAMPORTS_PER_SOL,
   sendAndConfirmTransaction,
+  Keypair,
 } from '@solana/web3.js';
-import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { WalletAdapter } from '@solana/wallet-adapter-base';
-import { CustomError, ErrorType } from '../custom-error';
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
+import bs58 from 'bs58';
 
-// Initialize connection to the Solana cluster
-const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL, 'confirmed');
+// Replace with your Solana network RPC URL
+const SOLANA_RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
 
-/**
- * Create a new wallet account
- * @returns Keypair of the new wallet
- */
-export function createWallet(): Keypair {
-  return Keypair.generate();
+const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+
+export async function createSolanaAccount(): Promise<{ publicKey: string; privateKey: string }> {
+  const account = Keypair.generate();
+  return {
+    publicKey: account.publicKey.toString(),
+    privateKey: bs58.encode(account.secretKey),
+  };
 }
 
-/**
- * Airdrop SOL to the given wallet address
- * @param walletAddress - Public key of the wallet
- * @param amount - Amount of SOL to airdrop
- * @returns Promise that resolves to the transaction signature
- */
-export async function airdropSOL(walletAddress: PublicKey, amount: number): Promise<string> {
-  const signature = await connection.requestAirdrop(walletAddress, amount * 1e9); // Convert to lamports (1 SOL = 1e9 lamports)
-  await connection.confirmTransaction(signature);
-  return signature;
-}
-
-/**
- * Transfer SOL from one wallet to another
- * @param fromWallet - Sender's wallet
- * @param toWallet - Recipient's wallet
- * @param amount - Amount of SOL to send
- * @returns Promise that resolves to the transaction signature
- */
-export async function transferSOL(
-  fromWallet: WalletAdapter,
-  toWallet: PublicKey,
-  amount: number
-): Promise<string> {
-  const transaction = new Transaction().add(
-    SystemProgram.transfer({
-      fromPubkey: fromWallet.publicKey,
-      toPubkey: toWallet,
-      lamports: amount * 1e9, // Convert to lamports
-    })
-  );
-
+export async function getSolanaBalance(publicKey: string): Promise<number> {
   try {
-    const signature = await sendAndConfirmTransaction(connection, transaction, [fromWallet]);
-    return signature;
+    const balance = await connection.getBalance(new PublicKey(publicKey));
+    return balance / LAMPORTS_PER_SOL;
   } catch (error) {
-    throw new CustomError(ErrorType.TransactionFailed, 'SOL transfer failed', error);
+    console.error('Error getting Solana balance:', error);
+    throw new Error('Failed to get Solana balance');
   }
 }
 
-/**
- * Create a new token account for a given mint
- * @param wallet - Wallet adapter for the user
- * @param mintAddress - Address of the token mint
- * @returns Promise that resolves to the token account public key
- */
-export async function createTokenAccount(wallet: WalletAdapter, mintAddress: PublicKey): Promise<PublicKey> {
-  const token = new Token(connection, mintAddress, TOKEN_PROGRAM_ID, wallet);
-  const tokenAccount = await token.createAccount(wallet.publicKey);
-  return tokenAccount;
-}
-
-/**
- * Get the balance of a token account
- * @param tokenAccount - Public key of the token account
- * @returns Promise that resolves to the balance
- */
-export async function getTokenBalance(tokenAccount: PublicKey): Promise<number> {
-  const tokenInfo = await connection.getTokenAccountBalance(tokenAccount);
-  return tokenInfo.value.amount; // Returns the balance as a string
-}
-
-/**
- * Transfer tokens from one account to another
- * @param wallet - Wallet adapter for the sender
- * @param fromTokenAccount - Source token account
- * @param toTokenAccount - Destination token account
- * @param amount - Amount of tokens to transfer
- * @returns Promise that resolves to the transaction signature
- */
-export async function transferTokens(
-  wallet: WalletAdapter,
-  fromTokenAccount: PublicKey,
-  toTokenAccount: PublicKey,
+export async function transferSOL(
+  fromPrivateKey: string,
+  toPublicKey: string,
   amount: number
 ): Promise<string> {
-  const transaction = new Transaction().add(
-    Token.createTransferInstruction(TOKEN_PROGRAM_ID, fromTokenAccount, toTokenAccount, wallet.publicKey, [], amount)
-  );
-
   try {
-    const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+    const fromKeypair = Keypair.fromSecretKey(bs58.decode(fromPrivateKey));
+    const toPublicKeyObj = new PublicKey(toPublicKey);
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: fromKeypair.publicKey,
+        toPubkey: toPublicKeyObj,
+        lamports: amount * LAMPORTS_PER_SOL,
+      })
+    );
+    const signature = await sendAndConfirmTransaction(connection, transaction, [fromKeypair]);
     return signature;
   } catch (error) {
-    throw new CustomError(ErrorType.NFTTransferFailed, 'Token transfer failed', error);
+    console.error('Error transferring SOL:', error);
+    throw new Error('Failed to transfer SOL');
+  }
+}
+
+export async function createTokenAccount(
+  ownerPublicKey: string,
+  tokenMintAddress: string
+): Promise<string> {
+  try {
+    const ownerPublicKeyObj = new PublicKey(ownerPublicKey);
+    const tokenMintAddressObj = new PublicKey(tokenMintAddress);
+    const associatedTokenAddress = await getAssociatedTokenAddress(
+      tokenMintAddressObj,
+      ownerPublicKeyObj
+    );
+    const transaction = new Transaction().add(
+      createAssociatedTokenAccountInstruction(
+        ownerPublicKeyObj,
+        associatedTokenAddress,
+        ownerPublicKeyObj,
+        tokenMintAddressObj
+      )
+    );
+    const signature = await sendAndConfirmTransaction(connection, transaction, []);
+    return associatedTokenAddress.toString();
+  } catch (error) {
+    console.error('Error creating token account:', error);
+    throw new Error('Failed to create token account');
+  }
+}
+
+export async function getTokenBalance(
+  tokenAccountAddress: string
+): Promise<number> {
+  try {
+    const tokenAccountInfo = await connection.getTokenAccountBalance(new PublicKey(tokenAccountAddress));
+    return parseFloat(tokenAccountInfo.value.amount) / Math.pow(10, tokenAccountInfo.value.decimals);
+  } catch (error) {
+    console.error('Error getting token balance:', error);
+    throw new Error('Failed to get token balance');
+  }
+}
+
+export function isValidSolanaAddress(address: string): boolean {
+  try {
+    new PublicKey(address);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getRecentBlockhash(): Promise<string> {
+  try {
+    const { blockhash } = await connection.getLatestBlockhash();
+    return blockhash;
+  } catch (error) {
+    console.error('Error getting recent blockhash:', error);
+    throw new Error('Failed to get recent blockhash');
+  }
+}
+
+export async function estimateTransactionFee(transaction: Transaction): Promise<number> {
+  try {
+    const { feeCalculator } = await connection.getRecentBlockhash();
+    const fee = feeCalculator.lamportsPerSignature * transaction.signatures.length;
+    return fee / LAMPORTS_PER_SOL;
+  } catch (error) {
+    console.error('Error estimating transaction fee:', error);
+    throw new Error('Failed to estimate transaction fee');
+  }
+}
+
+export function shortenAddress(address: string, chars = 4): string {
+  return `${address.slice(0, chars)}...${address.slice(-chars)}`;
+}
+
+export async function getTokenAccountsByOwner(ownerPublicKey: string): Promise<string[]> {
+  try {
+    const ownerPublicKeyObj = new PublicKey(ownerPublicKey);
+    const tokenAccounts = await connection.getTokenAccountsByOwner(ownerPublicKeyObj, {
+      programId: TOKEN_PROGRAM_ID,
+    });
+    return tokenAccounts.value.map(account => account.pubkey.toString());
+  } catch (error) {
+    console.error('Error getting token accounts:', error);
+    throw new Error('Failed to get token accounts');
   }
 }

@@ -1,166 +1,150 @@
 import {
-  Connection,
-  PublicKey,
-  LAMPORTS_PER_SOL,
-  TransactionSignature,
-} from '@solana/web3.js';
-import {
-  encodeURL,
-  createQR,
-  CreateQROptions,
-  ValidateTransferFields,
-  TransferRequestURL,
-} from '@solana/pay';
-import BigNumber from 'bignumber.js';
-
-// Replace with your Solana network RPC URL
-const SOLANA_RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
-
-// Ensure SOLANA_RPC_URL is defined
-if (!SOLANA_RPC_URL) {
-  throw new Error('Solana RPC URL is not defined. Please check your environment variables.');
-}
-
-const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
-
-interface PaymentRequest {
-  recipient: PublicKey;
-  amount: BigNumber;
-  reference: PublicKey;
-  label?: string;
-  message?: string;
-  memo?: string;
-}
-
-// Function to create a payment request
-export const createPaymentRequest = async (
-  recipient: string,
-  amount: number,
-  label?: string,
-  message?: string,
-  memo?: string
-): Promise<PaymentRequest> => {
-  try {
-    const recipientPublicKey = new PublicKey(recipient);
-    const amountInLamports = new BigNumber(amount).times(LAMPORTS_PER_SOL);
-    const reference = PublicKey.unique(); // Generate a unique reference key
-
-    return {
-      recipient: recipientPublicKey,
-      amount: amountInLamports,
-      reference,
-      label,
-      message,
-      memo,
-    };
-  } catch (error) {
-    console.error('Error creating payment request:', error);
-    throw new Error('Failed to create payment request: ' + (error instanceof Error ? error.message : 'Unknown error'));
-  }
-};
-
-// Function to encode the payment URI
-export const encodePaymentURI = (paymentRequest: PaymentRequest): string => {
-  try {
-    const { recipient, amount, reference, label, message, memo } = paymentRequest;
-    return encodeURL({ recipient, amount, reference, label, message, memo }).toString();
-  } catch (error) {
-    console.error('Error encoding payment URI:', error);
-    throw new Error('Failed to encode payment URI: ' + (error instanceof Error ? error.message : 'Unknown error'));
-  }
-};
-
-// Function to generate a QR code for the payment request
-export const generateQRCode = async (paymentRequest: PaymentRequest): Promise<string> => {
-  try {
-    const url = encodePaymentURI(paymentRequest);
-    const qrCode = createQR(url);
-    const qrCodeOptions: CreateQROptions = {
-      width: 512,
-      height: 512,
-      margin: 16,
-    };
-    return await qrCode.toDataURL(qrCodeOptions);
-  } catch (error) {
-    console.error('Error generating QR code:', error);
-    throw new Error('Failed to generate QR code: ' + (error instanceof Error ? error.message : 'Unknown error'));
-  }
-};
-
-// Function to check the status of a transaction
-export const checkTransactionStatus = async (signature: TransactionSignature): Promise<string> => {
-  try {
-    const status = await connection.getSignatureStatus(signature);
-    if (status.value?.confirmationStatus === 'finalized') {
-      return 'confirmed';
-    } else if (status.value?.confirmationStatus === 'processed') {
-      return 'processing';
-    } else {
-      return 'pending';
+    Connection,
+    PublicKey,
+    Transaction,
+    SystemProgram,
+    LAMPORTS_PER_SOL,
+    sendAndConfirmTransaction,
+    Keypair,
+  } from '@solana/web3.js';
+  import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
+  import { SOLANA_RPC_ENDPOINT, MILTON_MINT, USDC_MINT, MILTON_DECIMALS, USDC_DECIMALS } from './config';
+  
+  const connection = new Connection(SOLANA_RPC_ENDPOINT, 'confirmed');
+  
+  export async function getBalance(publicKey: PublicKey): Promise<number> {
+    try {
+      const balance = await connection.getBalance(publicKey);
+      return balance / LAMPORTS_PER_SOL;
+    } catch (error) {
+      console.error('Error getting balance:', error);
+      throw new Error('Failed to get balance');
     }
-  } catch (error) {
-    console.error('Error checking transaction status:', error);
-    throw new Error('Failed to check transaction status: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
-};
-
-// Function to get the balance of an account
-export const getAccountBalance = async (address: string): Promise<number> => {
-  try {
-    const publicKey = new PublicKey(address);
-    const balance = await connection.getBalance(publicKey);
-    return balance / LAMPORTS_PER_SOL; // Convert lamports to SOL
-  } catch (error) {
-    console.error('Error getting account balance:', error);
-    throw new Error('Failed to get account balance: ' + (error instanceof Error ? error.message : 'Unknown error'));
-  }
-};
-
-// Function to validate a transfer URL
-export const validateTransferURL = (url: string): boolean => {
-  try {
-    const parsedURL = new URL(url);
-    const params = Object.fromEntries(parsedURL.searchParams);
-    ValidateTransferFields(params as TransferRequestURL);
-    return true;
-  } catch (error) {
-    console.error('Error validating transfer URL:', error);
-    return false; // Return false if validation fails
-  }
-};
-
-// Function to parse a transfer URL
-export const parseTransferURL = (url: string): PaymentRequest | null => {
-  try {
-    const parsedURL = new URL(url);
-    const params = Object.fromEntries(parsedURL.searchParams);
-    ValidateTransferFields(params as TransferRequestURL);
-
-    return {
-      recipient: new PublicKey(params.recipient),
-      amount: new BigNumber(params.amount || 0),
-      reference: new PublicKey(params.reference || PublicKey.unique()),
-      label: params.label,
-      message: params.message,
-      memo: params.memo,
-    };
-  } catch (error) {
-    console.error('Error parsing transfer URL:', error);
-    return null; // Return null if parsing fails
-  }
-};
-
-// Function to estimate transaction fee
-export const estimateTransactionFee = async (): Promise<number> => {
-  try {
-    const recentBlockhash = await connection.getRecentBlockhash();
-    const feeCalculator = await connection.getFeeCalculatorForBlockhash(recentBlockhash.blockhash);
-    if (feeCalculator === null) {
-      throw new Error('Failed to get fee calculator');
+  
+  export async function transferSOL(
+    from: Keypair,
+    to: PublicKey,
+    amount: number
+  ): Promise<string> {
+    try {
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: from.publicKey,
+          toPubkey: to,
+          lamports: amount * LAMPORTS_PER_SOL,
+        })
+      );
+  
+      const signature = await sendAndConfirmTransaction(connection, transaction, [from]);
+      return signature;
+    } catch (error) {
+      console.error('Error transferring SOL:', error);
+      throw new Error('Failed to transfer SOL');
     }
-    return feeCalculator.lamportsPerSignature / LAMPORTS_PER_SOL; // Convert fee to SOL
-  } catch (error) {
-    console.error('Error estimating transaction fee:', error);
-    throw new Error('Failed to estimate transaction fee: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
-};
+  
+  export async function getTokenBalance(
+    owner: PublicKey,
+    mint: PublicKey
+  ): Promise<number> {
+    try {
+      const tokenAccount = await getAssociatedTokenAddress(mint, owner);
+      const balance = await connection.getTokenAccountBalance(tokenAccount);
+      const decimals = mint.equals(MILTON_MINT) ? MILTON_DECIMALS : USDC_DECIMALS;
+      return parseFloat(balance.value.amount) / Math.pow(10, decimals);
+    } catch (error) {
+      console.error('Error getting token balance:', error);
+      throw new Error('Failed to get token balance');
+    }
+  }
+  
+  export async function createAssociatedTokenAccount(
+    payer: Keypair,
+    owner: PublicKey,
+    mint: PublicKey
+  ): Promise<PublicKey> {
+    try {
+      const associatedTokenAddress = await getAssociatedTokenAddress(mint, owner);
+      const transaction = new Transaction().add(
+        createAssociatedTokenAccountInstruction(
+          payer.publicKey,
+          associatedTokenAddress,
+          owner,
+          mint
+        )
+      );
+  
+      await sendAndConfirmTransaction(connection, transaction, [payer]);
+      return associatedTokenAddress;
+    } catch (error) {
+      console.error('Error creating associated token account:', error);
+      throw new Error('Failed to create associated token account');
+    }
+  }
+  
+  export async function transferToken(
+    from: Keypair,
+    to: PublicKey,
+    mint: PublicKey,
+    amount: number
+  ): Promise<string> {
+    try {
+      const fromTokenAccount = await getAssociatedTokenAddress(mint, from.publicKey);
+      const toTokenAccount = await getAssociatedTokenAddress(mint, to);
+  
+      const transaction = new Transaction();
+  
+      // Check if the recipient's token account exists
+      const toTokenAccountInfo = await connection.getAccountInfo(toTokenAccount);
+      if (!toTokenAccountInfo) {
+        transaction.add(
+          createAssociatedTokenAccountInstruction(
+            from.publicKey,
+            toTokenAccount,
+            to,
+            mint
+          )
+        );
+      }
+  
+      const decimals = mint.equals(MILTON_MINT) ? MILTON_DECIMALS : USDC_DECIMALS;
+      const tokenAmount = amount * Math.pow(10, decimals);
+  
+      transaction.add(
+        createTransferInstruction(
+          fromTokenAccount,
+          toTokenAccount,
+          from.publicKey,
+          tokenAmount
+        )
+      );
+  
+      const signature = await sendAndConfirmTransaction(connection, transaction, [from]);
+      return signature;
+    } catch (error) {
+      console.error('Error transferring token:', error);
+      throw new Error('Failed to transfer token');
+    }
+  }
+  
+  function createTransferInstruction(
+    source: PublicKey,
+    destination: PublicKey,
+    owner: PublicKey,
+    amount: number
+  ): TransactionInstruction {
+    const data = Buffer.alloc(9);
+    data.writeUInt8(3, 0); // Transfer instruction
+    data.writeBigUInt64LE(BigInt(amount), 1);
+  
+    return new TransactionInstruction({
+      keys: [
+        { pubkey: source, isSigner: false, isWritable: true },
+        { pubkey: destination, isSigner: false, isWritable: true },
+        { pubkey: owner, isSigner: true, isWritable: false },
+      ],
+      programId: TOKEN_PROGRAM_ID,
+      data,
+    });
+  }

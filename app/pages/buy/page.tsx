@@ -3,18 +3,31 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { WalletProvider } from '@/components/wallet-provider'
+import { WalletProvider, useWallet } from '@solana/wallet-adapter-react'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import TokenPurchaseForm from '@/components/payments/buy-token/token-purchase-form'
+import { WalletButton } from '@/components/ui/wallet-button'
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, AlertCircle, Info, Coins, Shield } from 'lucide-react'
 
-const MILTON_LOGO_URL = 'https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg'
+const MILTON_LOGO_URL = process.env.NEXT_PUBLIC_MILTON_LOGO_URL || 'https://ucarecdn.com/fe802b60-cb87-4adc-8e1d-1b16a05f9420/miltonlogoicon.svg'
 
 export default function BuyPage() {
+  return (
+    <WalletProvider>
+      <WalletModalProvider>
+        <BuyPageContent />
+      </WalletModalProvider>
+    </WalletProvider>
+  )
+}
+
+function BuyPageContent() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const { publicKey } = useWallet()
 
   const handleError = (errorMessage: string | null) => {
     setError(errorMessage)
@@ -25,19 +38,17 @@ export default function BuyPage() {
   }
 
   return (
-    <WalletProvider>
-      <main className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <Header router={router} />
-          <ErrorDisplay error={error} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <PurchaseFormContainer setError={handleError} />
-            <InformationSection />
-          </div>
-          <SupportSection />
+    <main className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <Header router={router} />
+        <ErrorDisplay error={error} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <PurchaseFormContainer setError={handleError} isWalletConnected={!!publicKey} />
+          <InformationSection />
         </div>
-      </main>
-    </WalletProvider>
+        <SupportSection />
+      </div>
+    </main>
   )
 }
 
@@ -62,6 +73,7 @@ function Header({ router }: { router: ReturnType<typeof useRouter> }) {
         />
         Buy $MILTON
       </h1>
+      <WalletButton />
     </div>
   )
 }
@@ -78,7 +90,7 @@ function ErrorDisplay({ error }: { error: string | null }) {
   )
 }
 
-function PurchaseFormContainer({ setError }: { setError: (error: string | null) => void }) {
+function PurchaseFormContainer({ setError, isWalletConnected }: { setError: (error: string | null) => void, isWalletConnected: boolean }) {
   return (
     <Card>
       <CardHeader>
@@ -86,7 +98,14 @@ function PurchaseFormContainer({ setError }: { setError: (error: string | null) 
         <CardDescription>Enter the amount of MILTON you want to buy</CardDescription>
       </CardHeader>
       <CardContent>
-        <TokenPurchaseForm setError={setError} />
+        {isWalletConnected ? (
+          <TokenPurchaseForm setError={setError} />
+        ) : (
+          <div className="text-center">
+            <p className="mb-4">Please connect your wallet to purchase MILTON tokens.</p>
+            <WalletButton />
+          </div>
+        )}
       </CardContent>
     </Card>
   )
@@ -145,7 +164,7 @@ function SupportSection() {
   return (
     <div className="mt-8 text-center text-sm text-muted-foreground">
       <p>Need help? Contact our support team at</p>
-      <a href="mailto:support@milton.com" className="text-primary hover:underline">
+      <a href="mailto:support@miltonprotocol.com" className="text-primary hover:underline">
         support@miltonprotocol.com
       </a>
     </div>

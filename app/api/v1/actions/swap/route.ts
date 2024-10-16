@@ -1,96 +1,114 @@
-import { Hono } from 'hono';
-import { ActionPostRequest, ActionPostResponse, ActionError } from '@solana/actions';
-import jupiterApi from '../../swap';
-import { MILTON_LOGO } from '@/lib/solana/constants';
-const app = new Hono();
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { initJupiter, getQuote, executeSwap, getTokenInfo } from '@/api/v1/jupiter-api'
+import { PublicKey } from '@solana/web3.js'
 
-app.post('/:tokenPair', async (c) => {
-    const { tokenPair } = c.req.param();
-    const { account, amount } = (await c.req.json()) as ActionPostRequest;
+// Initialize Jupiter when the module is loaded
+initJupiter().catch(console.error)
 
-    // Validate token pair format
-    if (!/^([a-zA-Z0-9]+)-([a-zA-Z0-9]+)$/.test(tokenPair)) {
-        return c.json(
-            { message: 'Invalid token pair format. Expected format: TOKEN1-TOKEN2.' } satisfies ActionError,
-            { status: 400 },
-        );
-    }
+const SwapRequestSchema = z.object({
+  inputMint: z.string(),
+  outputMint: z.string(),
+  amount: z.string(),
+  slippage: z.number().min(0).max(100),
+  userPublicKey: z.string(),
+})
 
-    // Validate amount
-    if (isNaN(amount) || parseFloat(amount) <= 0) {
-        return c.json(
-            { message: 'Invalid amount. Must be a positive number.' } satisfies ActionError,
-            { status: 400 },
-        );
-    }
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { inputMint, outputMint, amount, slippage, userPublicKey } = SwapRequestSchema.parse(body)
 
-    const [inputToken, outputToken] = tokenPair.split('-');
-
+    // Validate public key
     try {
-        const [inputTokenMeta, outputTokenMeta] = await Promise.all([
-            jupiterApi.lookupToken(inputToken),
-            jupiterApi.lookupToken(outputToken),
-        ]);
-
-        if (!inputTokenMeta || !outputTokenMeta) {
-            return c.json(
-                { message: `Token metadata not found for ${tokenPair}.` } satisfies ActionError,
-                { status: 422 },
-            );
-        }
-
-        const tokenUsdPrices = await jupiterApi.getTokenPricesInUsdc([inputTokenMeta.address]);
-        const tokenPriceUsd = tokenUsdPrices[inputTokenMeta.address];
-
-        if (!tokenPriceUsd) {
-            return c.json(
-                { message: `Failed to get price for ${inputTokenMeta.symbol}.` } satisfies ActionError,
-                { status: 422 },
-            );
-        }
-
-        // Calculate the token amount from the input amount in USD
-        const tokenAmount = parseFloat(amount) / tokenPriceUsd.price;
-        const tokenAmountFractional = Math.ceil(tokenAmount * 10 ** inputTokenMeta.decimals);
-
-        console.log(`Swapping ${tokenAmountFractional} ${inputTokenMeta.symbol} to ${outputTokenMeta.symbol}  
-            usd amount: ${amount}
-            token usd price: ${tokenPriceUsd.price}
-            token amount: ${tokenAmount}
-            token amount fractional: ${tokenAmountFractional}`);
-
-        // Get a quote for the swap
-        const quote = await jupiterApi.quoteGet({
-            inputMint: inputTokenMeta.address,
-            outputMint: outputTokenMeta.address,
-            amount: tokenAmountFractional,
-            autoSlippage: true,
-            maxAutoSlippageBps: 500, // 5%
-        });
-
-        // Execute the swap
-        const swapResponse = await jupiterApi.swapPost({
-            swapRequest: {
-                quoteResponse: quote,
-                userPublicKey: account,
-                prioritizationFeeLamports: 'auto',
-            },
-        });
-
-        // Prepare the response for the action post
-        const response: ActionPostResponse = {
-            type: 'transaction',
-            transaction: swapResponse.swapTransaction,
-        };
-
-        return c.json(response);
+      new PublicKey(userPublicKey)
     } catch (error) {
-        console.error('Error during swap operation:', error);
-        return c.json(
-            { message: `An error occurred during the swap process: ${error.message}` } satisfies ActionError,
-            { status: 500 },
-        );
+      return NextResponse.json({ error: 'Invalid user public key' }, { status: 400 })
     }
-});
 
-export default app;
+    // Get token info
+    const inputToken = getTokenInfo(inputMint)
+    const outputToken = getTokenInfo(outputMint)
+
+    if (!inputToken || !outputToken) {
+      return NextResponse.json({ error: 'Invalid input or output token' }, { status: 400 })
+    }
+
+    // Get quote
+    const quote = await getQuote({ inputMint, outputMint, amount, slippage })
+
+    if (!quote) {
+      return NextResponse.json({ error: 'No route found for the swap' }, { status: 404 })
+    }
+
+    // Execute swap
+    const swapResult = await executeSwap({ route: quote, userPublicKey })
+
+    if ('error' in swapResult) {
+      return NextResponse.json({ error: swapResult.error }, { status: 500 })
+    }
+
+    // Calculate amounts in human-readable format
+    const inputAmount = (parseInt(swapResult.inputAmount) / 10 ** inputToken.decimals).toFixed(inputToken.decimals)
+    const outputAmount = (parseInt(swapResult.outputAmount) / 10 ** outputToken.decimals).toFixed(outputToken.decimals)
+
+    return NextResponse.json({
+      txid: swapResult.txid,
+      inputAmount,
+      outputAmount,
+      inputToken: inputToken.symbol,
+      outputToken: outputToken.symbol,
+    })
+  } catch (error) {
+    console.error('Swap error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input parameters' }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const inputMint = request.nextUrl.searchParams.get('inputMint')
+  const outputMint = request.nextUrl.searchParams.get('outputMint')
+  const amount = request.nextUrl.searchParams.get('amount')
+  const slippage = request.nextUrl.searchParams.get('slippage')
+
+  if (!inputMint || !outputMint || !amount || !slippage) {
+    return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 })
+  }
+
+  try {
+    const quote = await getQuote({
+      inputMint,
+      outputMint,
+      amount,
+      slippage: parseFloat(slippage),
+    })
+
+    if (!quote) {
+      return NextResponse.json({ error: 'No route found for the swap' }, { status: 404 })
+    }
+
+    const inputToken = getTokenInfo(inputMint)
+    const outputToken = getTokenInfo(outputMint)
+
+    if (!inputToken || !outputToken) {
+      return NextResponse.json({ error: 'Invalid input or output token' }, { status: 400 })
+    }
+
+    const inputAmount = (parseInt(quote.inAmount) / 10 ** inputToken.decimals).toFixed(inputToken.decimals)
+    const outputAmount = (parseInt(quote.outAmount) / 10 ** outputToken.decimals).toFixed(outputToken.decimals)
+
+    return NextResponse.json({
+      inputAmount,
+      outputAmount,
+      inputToken: inputToken.symbol,
+      outputToken: outputToken.symbol,
+      priceImpact: quote.priceImpactPct,
+    })
+  } catch (error) {
+    console.error('Quote error:', error)
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
+}

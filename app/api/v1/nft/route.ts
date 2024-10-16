@@ -1,28 +1,87 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { createNFT } from './nft-mint';
-import { logError } from '../../../errors/error-logger';
+import { NextRequest, NextResponse } from 'next/server'
+import { Connection, Keypair, PublicKey } from '@solana/web3.js'
+import { Metaplex, keypairIdentity, bundlrStorage } from '@metaplex-foundation/js'
+import { z } from 'zod'
 
-// Function to handle API requests for NFTs
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    try {
-      const { name, description, image } = req.body;
+const SOLANA_RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || 'https://api.devnet.solana.com'
+const NFT_CREATOR_PRIVATE_KEY = process.env.NFT_CREATOR_PRIVATE_KEY
 
-      // Validate request body
-      if (!name || !description || !image) {
-        return res.status(400).json({ message: 'All fields are required.' });
-      }
+if (!NFT_CREATOR_PRIVATE_KEY) {
+  throw new Error('NFT_CREATOR_PRIVATE_KEY environment variable is not set')
+}
 
-      // Call the service to create the NFT
-      const newNFT = await createNFT(name, description, image);
-      return res.status(201).json(newNFT);
-    } catch (error) {
-      // Log the error
-      logError(error);
-      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+const connection = new Connection(SOLANA_RPC_ENDPOINT, 'confirmed')
+const nftCreatorKeypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(NFT_CREATOR_PRIVATE_KEY)))
+
+const metaplex = Metaplex.make(connection)
+  .use(keypairIdentity(nftCreatorKeypair))
+  .use(bundlrStorage())
+
+const NFTMintSchema = z.object({
+  name: z.string().min(1).max(32),
+  description: z.string().max(1000),
+  imageUrl: z.string().url(),
+  attributes: z.array(z.object({
+    trait_type: z.string(),
+    value: z.string()
+  })).optional(),
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { name, description, imageUrl, attributes } = NFTMintSchema.parse(body)
+
+    const { nft } = await metaplex.nfts().create({
+      name: name,
+      description: description,
+      uri: imageUrl,
+      sellerFeeBasisPoints: 500, // 5% royalty
+      properties: {
+        files: [{ uri: imageUrl, type: 'image/png' }],
+        category: 'image',
+        creators: [{ address: nftCreatorKeypair.publicKey, share: 100 }],
+      },
+      attributes: attributes,
+    })
+
+    return NextResponse.json({
+      success: true,
+      mintAddress: nft.address.toBase58(),
+      name: nft.name,
+      description: nft.description,
+      imageUrl: nft.uri,
+    })
+  } catch (error) {
+    console.error('NFT minting error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input parameters', details: error.errors }, { status: 400 })
     }
-  } else {
-    // Handle other HTTP methods if needed
-    return res.status(405).json({ message: 'Method Not Allowed' });
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const mintAddress = request.nextUrl.searchParams.get('mintAddress')
+
+  if (!mintAddress) {
+    return NextResponse.json({ error: 'Missing mint address' }, { status: 400 })
+  }
+
+  try {
+    const mintPublicKey = new PublicKey(mintAddress)
+    const nft = await metaplex.nfts().findByMint({ mintAddress: mintPublicKey })
+
+    return NextResponse.json({
+      mintAddress: nft.address.toBase58(),
+      name: nft.name,
+      description: nft.description,
+      imageUrl: nft.uri,
+      attributes: nft.attributes,
+      owner: nft.ownership.owner.toBase58(),
+    })
+  } catch (error) {
+    console.error('NFT retrieval error:', error)
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }
 }

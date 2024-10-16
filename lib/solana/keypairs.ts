@@ -1,57 +1,42 @@
 import { Keypair } from '@solana/web3.js';
-import fs from 'fs';
-import path from 'path';
-import * as crypto from 'crypto';
+import * as bip39 from 'bip39';
+import { derivePath } from 'ed25519-hd-key';
 
-// Define the path to store keypairs securely
-const KEYPAIR_PATH = path.join(process.cwd(), 'keys'); // Adjust the path as needed
-const KEYPAIR_FILE = 'user-keypair.json';
+export function generateMnemonic(): string {
+  return bip39.generateMnemonic();
+}
 
-// Function to generate a new keypair
+export function mnemonicToSeed(mnemonic: string): Buffer {
+  return bip39.mnemonicToSeedSync(mnemonic);
+}
+
+export function seedToKeypair(seed: Buffer, derivationPath: string = "m/44'/501'/0'/0'"): Keypair {
+  const derivedSeed = derivePath(derivationPath, seed.toString('hex')).key;
+  return Keypair.fromSeed(derivedSeed);
+}
+
+export function mnemonicToKeypair(mnemonic: string, derivationPath: string = "m/44'/501'/0'/0'"): Keypair {
+  const seed = mnemonicToSeed(mnemonic);
+  return seedToKeypair(seed, derivationPath);
+}
+
 export function generateKeypair(): Keypair {
-  const keypair = Keypair.generate();
-  saveKeypair(keypair);
-  return keypair;
+  return Keypair.generate();
 }
 
-// Function to save the keypair to a file securely
-export function saveKeypair(keypair: Keypair) {
-  if (!fs.existsSync(KEYPAIR_PATH)) {
-    fs.mkdirSync(KEYPAIR_PATH, { recursive: true });
-  }
-
-  // Encrypt the keypair before saving
-  const encryptedKeypair = encryptKeypair(keypair.secretKey);
-  fs.writeFileSync(path.join(KEYPAIR_PATH, KEYPAIR_FILE), JSON.stringify(encryptedKeypair));
+export function keypairToString(keypair: Keypair): string {
+  return JSON.stringify(Array.from(keypair.secretKey));
 }
 
-// Function to encrypt the keypair
-function encryptKeypair(secretKey: Uint8Array): string {
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(process.env.ENCRYPTION_KEY, 'hex'), Buffer.from(process.env.IV, 'hex'));
-  let encrypted = cipher.update(secretKey);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return encrypted.toString('hex');
+export function stringToKeypair(keypairString: string): Keypair {
+  const secretKey = new Uint8Array(JSON.parse(keypairString));
+  return Keypair.fromSecretKey(secretKey);
 }
 
-// Function to retrieve the keypair from the file
-export function getKeypair(userId: string): Keypair | null {
-  try {
-    const data = fs.readFileSync(path.join(KEYPAIR_PATH, KEYPAIR_FILE), 'utf-8');
-    const encryptedKeypair = JSON.parse(data);
-
-    // Decrypt the keypair
-    const decryptedKeypair = decryptKeypair(encryptedKeypair);
-    return Keypair.fromSecretKey(decryptedKeypair);
-  } catch (error) {
-    console.error('Error retrieving keypair:', error);
-    return null;
-  }
+export function publicKeyToString(keypair: Keypair): string {
+  return keypair.publicKey.toBase58();
 }
 
-// Function to decrypt the keypair
-function decryptKeypair(encryptedSecretKey: string): Uint8Array {
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(process.env.ENCRYPTION_KEY, 'hex'), Buffer.from(process.env.IV, 'hex'));
-  let decrypted = decipher.update(Buffer.from(encryptedSecretKey, 'hex'));
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  return decrypted;
+export function validateMnemonic(mnemonic: string): boolean {
+  return bip39.validateMnemonic(mnemonic);
 }
