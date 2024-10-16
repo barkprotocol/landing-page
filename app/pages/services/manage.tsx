@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { PublicKey } from '@solana/web3.js'
 import { useToast } from "@/components/ui/use-toast"
