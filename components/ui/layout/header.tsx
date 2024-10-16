@@ -70,10 +70,12 @@ export function Header() {
           </nav>
           <div className="hidden md:flex space-x-4 items-center">
             <WalletButton />
-            <Button variant="outline" className="text-primary hover:bg-primary/10">
-              <Rocket className="mr-2 h-4 w-4" />
-              Launch App
-            </Button>
+            <Link href="./pages/blinkboard" passHref>
+              <Button variant="outline" className="text-primary hover:bg-primary/10">
+                <Rocket className="mr-2 h-4 w-4" />
+                Launch App
+              </Button>
+            </Link>
           </div>
           <button
             className="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
@@ -110,10 +112,12 @@ export function Header() {
                 </Link>
               ))}
               <WalletButton />
-              <Button variant="outline" className="text-primary hover:bg-primary/10 w-full">
-                <Rocket className="mr-2 h-4 w-4" />
-                Launch App
-              </Button>
+              <Link href="/blinkboard" passHref>
+                <Button variant="outline" className="text-primary hover:bg-primary/10 w-full">
+                  <Rocket className="mr-2 h-4 w-4" />
+                  Launch App
+                </Button>
+              </Link>
             </nav>
           </motion.div>
         )}
