@@ -7,6 +7,7 @@ import {
   SYSVAR_RENT_PUBKEY,
 } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { logger } from '@/lib/solana/logger';
 import { BN } from './bn';
 
 export class MiltonBlinkProgram {

@@ -8,7 +8,7 @@ import {
 } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
 import { CustomError, ErrorType } from './custom-error';
-import { logger } from '../solana/logger';
+import { logger } from '@/lib/solana/logger';
 
 export interface PaymentInfo {
   payer: PublicKey;

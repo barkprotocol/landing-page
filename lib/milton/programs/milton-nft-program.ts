@@ -14,7 +14,7 @@ import {
     NftWithToken,
   } from '@metaplex-foundation/js';
   import { CustomError, ErrorType } from './custom-error';
-  import { logger } from '../solana/logger';
+  import { logger } from '@/lib/solana/logger';
   
   export class MiltonNFTProgram {
     private connection: Connection;

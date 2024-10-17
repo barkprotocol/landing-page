@@ -7,7 +7,7 @@ import {
     sendAndConfirmTransaction,
   } from '@solana/web3.js';
   import { CustomError, ErrorType } from './custom-error';
-  import { logger } from '../solana/logger';
+  import { logger } from '@/lib/solana/logger';
   
   export interface Proposal {
     id: string;

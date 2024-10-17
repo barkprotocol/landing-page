@@ -1,4 +1,4 @@
-# Milton Platform
+# Milton Platform - Dev
 
 Milton Platform is a comprehensive blockchain-based solution built on the Solana network. It provides a suite of tools and services for managing digital assets, including tokens, NFTs, and decentralized finance (DeFi) applications.
 
