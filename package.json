@@ -126,6 +126,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-react-aria-components": "1.1.5",
     "tweetnacl": "^1.0.3",
+    "use-debounce": "^10.0.4",
     "uuid": "^10.0.0",
     "winston": "^3.15.0",
     "zod": "^3.23.8"

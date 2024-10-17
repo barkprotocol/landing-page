@@ -28,7 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       lang="en"
       className={`bg-white dark:bg-gray-950 text-black dark:text-white ${manrope.className}`}
     >
-      <body className="min-h-[100dvh] bg-gray-50">
+      <body className="min-h-[100dvh] bg-gray-100">
         <UserProvider userPromise={userPromise}>
           <WalletProvider>
             {children}
