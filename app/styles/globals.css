@@ -39,9 +39,9 @@
     --destructive-foreground: 210 40% 98%;
 
     /* Additional Colors */
-    --navajo-white: #ffc272; /* Navajo White */
-    --ff-daa4: #FFDAA4; /* FFDAA4 */
-    --butter-milk: #FFECB1; /* Butter Milk */
+    --navajo-white: 35 100% 72%;
+    --ff-daa4: 35 100% 82%;
+    --butter-milk: 42 100% 85%;
   }
 
   .dark {
@@ -77,40 +77,94 @@
     /* Destructive Colors */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+
+    /* Additional Colors (Dark Mode Variants) */
+    --navajo-white: 35 70% 60%;
+    --ff-daa4: 35 70% 70%;
+    --butter-milk: 42 70% 75%;
   }
 }
 
 @layer base {
-  /* Global Styles */
   * {
     @apply border-border;
-    box-sizing: border-box; /* Ensures consistent box model */
+    box-sizing: border-box;
   }
   
   body {
     @apply bg-background text-foreground;
-    font-family: 'Poppins', sans-serif; /* Default font for body text */
+    font-family: 'Poppins', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Oswald', sans-serif; /* Font for headings */
-    @apply text-primary; /* Applies primary text color */
+    font-family: 'Oswald', sans-serif;
+    @apply text-primary font-bold;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg transition-colors duration-200 ease-in-out;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90;
   }
 
-  /* Utility Classes for Common Elements */
-  .btn {
-    @apply px-4 py-2 rounded-lg; /* Common button styles */
+  .btn-secondary {
+    @apply btn bg-secondary text-secondary-foreground hover:bg-secondary/90;
   }
-  
+
   .link {
-    @apply text-primary underline hover:text-primary-foreground; /* Link styles */
+    @apply text-primary underline hover:text-primary/80 transition-colors duration-200 ease-in-out;
   }
-  
-  /* Responsive and Utility Enhancements */
-  @media (prefers-color-scheme: dark) {
-    /* Dark mode specific styles */
-    .btn {
-      @apply bg-secondary text-secondary-foreground;
-    }
+
+  .card {
+    @apply bg-card text-card-foreground rounded-lg shadow-md p-4;
+  }
+
+  .input {
+    @apply bg-background text-foreground rounded-md px-3 py-2 border border-input focus:outline-none focus:ring-2 focus:ring-ring;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-200 ease-in-out hover:-translate-y-1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  h1 {
+    @apply text-2xl;
+  }
+  h2 {
+    @apply text-xl;
+  }
+  .btn {
+    @apply px-3 py-1.5 text-sm;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  h1 {
+    @apply text-3xl;
+  }
+  h2 {
+    @apply text-2xl;
+  }
+}
+
+@media (min-width: 1025px) {
+  h1 {
+    @apply text-4xl;
+  }
+  h2 {
+    @apply text-3xl;
   }
 }

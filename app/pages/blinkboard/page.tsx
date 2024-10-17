@@ -25,7 +25,7 @@ import { toast } from "@/components/ui/use-toast";
 import { NFTCard } from './nft-card';
 import { blinkTypes, createBlink, mintToken, mintNFT, BlinkType } from './blink-services';
 
-const iconColor = "#D4AF37"; // Darker tan color
+const iconColor = "#D4AF37";
 
 const BlinkboardDemo = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +71,7 @@ const NFTOverview = ({ nfts }) => (
 );
 
 const BlinkTypes = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
     {blinkTypes.map((type) => (
       <Card key={type.id} className="bg-white text-gray-800">
         <CardHeader>
@@ -169,14 +169,14 @@ const CommunitySection = () => {
         </Card>
         <Card className="bg-white text-gray-800">
           <CardHeader>
-            <CardTitle>Twitter</CardTitle>
+            <CardTitle>X</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Follow us on Twitter for the latest updates and announcements.</p>
-            <p className="font-bold mt-2">{twitterFollowers.toLocaleString()} followers</p>
+            <p>Follow us on X for the latest updates and announcements.</p>
+            <p className="font-bold mt-2">{xFollowers.toLocaleString()} followers</p>
           </CardContent>
           <CardFooter>
-            <Button variant="outline">Follow @Blinkboard</Button>
+            <Button variant="outline">Follow @miltonprotocol</Button>
           </CardFooter>
         </Card>
       </div>
@@ -200,9 +200,7 @@ const APISection = () => {
           <p className="mb-4">Integrate Blinkboard into your applications with our comprehensive API.</p>
           <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-gray-800">
             <code>
-              {`
-GET /api/v1/blinks
-Authorization: Bearer YOUR_API_KEY
+              {`GET /api/v1/blinks-authorization: Bearer YOUR_API_KEY
 
 {
   "blinks": [
@@ -491,7 +489,7 @@ export default function Blinkboard() {
         setTimeout(resolve, 1000)
       );
       const mockNftData = [
-        { id: '1', name: 'MIltonNFT #1', price: 1.5, image: '/placeholder.svg?height=300&width=300', description: 'A really cool NFT' },
+        { id: '1', name: 'Milton NFT #1', price: 1.5, image: '/placeholder.svg?height=300&width=300', description: 'A really cool NFT' },
         { id: '2', name: 'Awesome NFT #2', price: 2.0, image: '/placeholder.svg?height=300&width=300', description: 'An awesome NFT' },
         { id: '3', name: 'Rare NFT #3', price: 5.0, image: '/placeholder.svg?height=300&width=300', description: 'A rare and valuable NFT' },
         { id: '4', name: 'Unique NFT #4', price: 3.5, image: '/placeholder.svg?height=300&width=300', description: 'A one-of-a-kind NFT' },
@@ -554,7 +552,7 @@ export default function Blinkboard() {
 
           <CardContent className="space-y-8">
             <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-9 gap-2 bg-gray-100">
+              <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-2 bg-gray-100">
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.id} value={tab.id} className="flex items-center space-x-2 data-[state=active]:bg-white">
                     <tab.icon className="w-4 h-4" style={{ color: iconColor }} />
