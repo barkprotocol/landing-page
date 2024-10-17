@@ -16,10 +16,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image as ImageIcon, Info, Zap, Repeat, CreditCard, Users, Code, Printer, ArrowRight, Play, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Image as ImageIcon, Info, Zap, Repeat, CreditCard, Users, Code, Printer, ArrowRight, Play, ChevronLeft, ChevronRight, Lock, Home, Coins, FileImage, Gift, DollarSign, Send } from 'lucide-react';
 import { VideoPresentation } from "@/components/ui/video-presentation";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { toast } from "@/components/ui/use-toast";
+import { NFTCard } from './nft-card';
+import { blinkTypes, createBlink, mintToken, mintNFT, BlinkType } from './blink-services';
 
 const iconColor = "#D4AF37"; // Darker tan color
 
@@ -61,47 +65,36 @@ const BlinkboardDemo = () => {
 const NFTOverview = ({ nfts }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {nfts.map((nft, index) => (
-      <Card key={index} className="overflow-hidden bg-white text-gray-800">
-        <img src={nft.image} alt={nft.name} className="w-full h-48 object-cover" />
-        <CardContent className="p-4">
-          <h4 className="font-bold">{nft.name}</h4>
-          <p className="text-sm text-gray-600">{nft.description}</p>
-          <p className="text-sm font-semibold mt-2">Price: {nft.price} SOL</p>
+      <NFTCard key={index} {...nft} />
+    ))}
+  </div>
+);
+
+const BlinkTypes = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+    {blinkTypes.map((type) => (
+      <Card key={type.id} className="bg-white text-gray-800">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            {type.name === 'Donation' && <Gift className="mr-2 h-4 w-4" style={{ color: iconColor }} />}
+            {type.name === 'Gift' && <Gift className="mr-2 h-4 w-4" style={{ color: iconColor }} />}
+            {type.name === 'Payment' && <DollarSign className="mr-2 h-4 w-4" style={{ color: iconColor }} />}
+            {type.name === 'Send Transaction' && <Send className="mr-2 h-4 w-4" style={{ color: iconColor }} />}
+            {type.name} Blink
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-2">{type.description}</p>
+          <ul className="list-disc list-inside text-sm">
+            {type.features.map((feature, index) => (
+              <li key={index}>{feature}</li>
+            ))}
+          </ul>
         </CardContent>
       </Card>
     ))}
   </div>
 );
-
-const BlinkTypes = () => {
-  const types = ['Standard', 'Flash', 'Scheduled', 'Recurring', 'Conditional', 'Secure'];
-  const descriptions = {
-    'Standard': 'Basic Blink for simple transactions.',
-    'Flash': 'Ultra-fast Blinks for time-sensitive operations.',
-    'Scheduled': 'Set future dates for automatic Blink execution.',
-    'Recurring': 'Automate repeated Blinks at set intervals.',
-    'Conditional': 'Blinks that execute based on predefined conditions.',
-    'Secure': 'Enhanced security features for high-value Blinks.',
-  };
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {types.map((type) => (
-        <Card key={type} className="bg-white text-gray-800">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              {type === 'Secure' && <Lock className="mr-2 h-4 w-4" style={{ color: iconColor }} />}
-              {type} Blink
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{descriptions[type]}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-};
 
 const SubscriptionPlans = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -247,38 +240,26 @@ Authorization: Bearer YOUR_API_KEY
   );
 };
 
-const MintFeature = () => {
-  const { connection } = useConnection();
-  const wallet = useWallet();
-  const [isLoading, setIsLoading] = useState(false);
+const CreateBlink = () => {
+  const [blinkType, setBlinkType] = useState<string>('donation');
+  const [amount, setAmount] = useState<string>('');
+  const [recipient, setRecipient] = useState<string>('');
+  const [memo, setMemo] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleMint = async (event) => {
-    event.preventDefault();
-    if (!wallet.connected) {
-      toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to mint a Blink.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleCreateBlink = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
-    const amount = parseFloat(event.target.amount.value);
-    const recipient = event.target.recipient.value;
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const address = PublicKey.unique().toBase58();
-      console.log(`Minted Blink token: address ${address}, amount ${amount}, recipient ${recipient}`);
+      const result = await createBlink(blinkType, parseFloat(amount), recipient, memo);
       toast({
-        title: "Blink minted successfully!",
-        description: `Token address: ${address}`,
+        title: "Blink Created Successfully",
+        description: `Transaction ID: ${result.txId}`,
       });
     } catch (error) {
       toast({
-        title: "Error minting Blink",
-        description: error.message,
+        title: "Error Creating Blink",
+        description: "There was an error creating your Blink. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -287,40 +268,189 @@ const MintFeature = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-2xl font-bold mb-4 text-gray-800">Mint Your Own Blinks</h3>
-      <Card className="bg-white text-gray-800">
-        <CardHeader>
-          <CardTitle>Create a New Blink</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleMint} className="space-y-4">
-            <div>
-              <Label htmlFor="blinkType">Blink Type</Label>
-              <select id="blinkType" className="w-full p-2 border rounded bg-white text-gray-800">
-                <option>Standard</option>
-                <option>Flash</option>
-                <option>Scheduled</option>
-                <option>Recurring</option>
-                <option>Conditional</option>
-                <option>Secure</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="amount">Amount</Label>
-              <Input id="amount" type="number" placeholder="0" className="bg-white text-gray-800" />
-            </div>
-            <div>
-              <Label htmlFor="recipient">Recipient Address</Label>
-              <Input id="recipient" placeholder="Solana address" className="bg-white text-gray-800" />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Minting..." : "Mint Blink"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="bg-white text-gray-800">
+      <CardHeader>
+        <CardTitle>Create a Blink</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleCreateBlink} className="space-y-4">
+          <div>
+            <Label htmlFor="blinkType">Blink Type</Label>
+            <Select value={blinkType} onValueChange={setBlinkType}>
+              <SelectTrigger id="blinkType">
+                <SelectValue placeholder="Select Blink Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {blinkTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="amount">Amount</Label>
+            <Input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="recipient">Recipient Address</Label>
+            <Input
+              id="recipient"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              placeholder="Solana address"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="memo">Memo (Optional)</Label>
+            <Textarea
+              id="memo"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="Add a message or note"
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Creating Blink..." : "Create Blink"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
+const MintFeature = () => {
+  const [mintType, setMintType] = useState<'token' | 'nft'>('token');
+  const [name, setName] = useState<string>('');
+  const [symbol, setSymbol] = useState<string>('');
+  const [supply, setSupply] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [image, setImage] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const handleMint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      if (mintType === 'token') {
+        const result = await mintToken(name, symbol, parseInt(supply));
+        toast({
+          title: "Token Minted Successfully",
+          description: `Token Address: ${result.tokenAddress}`,
+        });
+      } else {
+        if (!image) throw new Error("Image is required for NFT minting");
+        const result = await mintNFT(name, description, image);
+        toast({
+          title: "NFT Minted Successfully",
+          description: `NFT Address: ${result.nftAddress}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error Minting",
+        description: "There was an error  minting. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="bg-white text-gray-800">
+      <CardHeader>
+        <CardTitle>Mint Token or NFT</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleMint} className="space-y-4">
+          <div>
+            <Label htmlFor="mintType">Mint Type</Label>
+            <Select value={mintType} onValueChange={(value: 'token' | 'nft') => setMintType(value)}>
+              <SelectTrigger id="mintType">
+                <SelectValue placeholder="Select Mint Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="token">Token</SelectItem>
+                <SelectItem value="nft">NFT</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Asset Name"
+              required
+            />
+          </div>
+          {mintType === 'token' && (
+            <>
+              <div>
+                <Label htmlFor="symbol">Symbol</Label>
+                <Input
+                  id="symbol"
+                  value={symbol}
+                  onChange={(e) => setSymbol(e.target.value)}
+                  placeholder="Token Symbol"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="supply">Initial Supply</Label>
+                <Input
+                  id="supply"
+                  type="number"
+                  value={supply}
+                  onChange={(e) => setSupply(e.target.value)}
+                  placeholder="1000000"
+                  min="0"
+                  required
+                />
+              </div>
+            </>
+          )}
+          {mintType === 'nft' && (
+            <>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="NFT Description"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="image">Image</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  onChange={(e) => setImage(e.target.files?.[0] || null)}
+                  accept="image/*"
+                  required
+                />
+              </div>
+            </>
+          )}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Minting..." : `Mint ${mintType === 'token' ? 'Token' : 'NFT'}`}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -331,15 +461,20 @@ export default function Blinkboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const handleBackToMain = useCallback(() => {
+    setActiveTab("overview");
+  }, []);
+
   const tabs = [
     { id: "overview", label: "Overview", icon: Info },
     { id: "demo", label: "Demo", icon: Zap },
     { id: "blink-types", label: "Blink Types", icon: Repeat },
+    { id: "create-blink", label: "Create Blink", icon: Send },
     { id: "nfts", label: "NFTs", icon: ImageIcon },
     { id: "subscription", label: "Subscription", icon: CreditCard },
     { id: "community", label: "Community", icon: Users },
     { id: "api", label: "API", icon: Code },
-    { id: "mint", label: "Mint", icon: Printer },
+    { id: "mint", label: "Mint", icon: Coins },
   ];
 
   const interfaceImages = [
@@ -356,7 +491,7 @@ export default function Blinkboard() {
         setTimeout(resolve, 1000)
       );
       const mockNftData = [
-        { id: '1', name: 'Cool NFT #1', price: 1.5, image: '/placeholder.svg?height=300&width=300', description: 'A really cool NFT' },
+        { id: '1', name: 'MIltonNFT #1', price: 1.5, image: '/placeholder.svg?height=300&width=300', description: 'A really cool NFT' },
         { id: '2', name: 'Awesome NFT #2', price: 2.0, image: '/placeholder.svg?height=300&width=300', description: 'An awesome NFT' },
         { id: '3', name: 'Rare NFT #3', price: 5.0, image: '/placeholder.svg?height=300&width=300', description: 'A rare and valuable NFT' },
         { id: '4', name: 'Unique NFT #4', price: 3.5, image: '/placeholder.svg?height=300&width=300', description: 'A one-of-a-kind NFT' },
@@ -419,7 +554,7 @@ export default function Blinkboard() {
 
           <CardContent className="space-y-8">
             <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 bg-gray-100">
+              <TabsList className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-9 gap-2 bg-gray-100">
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.id} value={tab.id} className="flex items-center space-x-2 data-[state=active]:bg-white">
                     <tab.icon className="w-4 h-4" style={{ color: iconColor }} />
@@ -483,6 +618,9 @@ export default function Blinkboard() {
                   <TabsContent value="blink-types" className="mt-6">
                     <BlinkTypes />
                   </TabsContent>
+                  <TabsContent value="create-blink" className="mt-6">
+                    <CreateBlink />
+                  </TabsContent>
                   <TabsContent value="nfts" className="mt-6">
                     {loading && <p className="text-gray-600">Loading NFT data...</p>}
                     {error && <p className="text-red-600">{error}</p>}
@@ -503,6 +641,16 @@ export default function Blinkboard() {
                 </motion.div>
               </AnimatePresence>
             </Tabs>
+            {activeTab !== "overview" && (
+              <Button
+                className="mt-4"
+                onClick={handleBackToMain}
+                variant="outline"
+              >
+                <Home className="mr-2 h-4 w-4" style={{ color: iconColor }} />
+                Back to Main
+              </Button>
+            )}
           </CardContent>
 
           <CardFooter className="flex justify-center space-x-4">
